@@ -1,0 +1,27 @@
+#include "FileDeleteObserver.h"
+#include <string>
+#include "MyLog.h"
+
+using namespace std;
+
+FileDeleteObserver::FileDeleteObserver(const std::string& path)
+{
+    mPath = path;
+    mFileObserver = new FileObserver(path, this);
+}
+
+bool FileDeleteObserver::startWatching()
+{
+    return mFileObserver->startWatching();
+}
+
+void FileDeleteObserver::stopWatching()
+{
+    mFileObserver->stopWatching();
+}
+
+void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& path)
+{
+    XLOG("FileDeleteObserver::onEvent delete path=%s", path.c_str());
+}
+
