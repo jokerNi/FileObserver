@@ -20,11 +20,19 @@ struct ThreadParams
 };
 
 
+bool isFileExist(const char* path)
+{
+    if (access(path, F_OK) == -1)
+        return false;
+    return true;
+}
+
 void* ThreadFunc(void* param)
 {
     ThreadParams* thread_params = static_cast<ThreadParams*>(param);
     FileObserver::Delegate* delegate = thread_params->delegate;
     const char* path = thread_params->path;
+    bool loop = true;
     
     int fd = inotify_init();
     if (fd == -1)
@@ -43,8 +51,9 @@ void* ThreadFunc(void* param)
     }
 
     XLOG("start watching %s\n", path);
-    while (true)
+    while (true && loop)
     {
+        XLOG("while loop begin");
         const int bufferSize = 16384;
         char buffer[bufferSize];
         ssize_t recvSize = read(fd, buffer, bufferSize);
@@ -75,6 +84,7 @@ void* ThreadFunc(void* param)
             count++;
         }
 
+        usleep(1000 * 500);     // sleep for file operation (eg. delete) complete
         char* cur_event_filename = NULL;
         char* cur_event_file_or_dir = NULL;
         int cur_event_wd;
@@ -130,6 +140,11 @@ void* ThreadFunc(void* param)
                     XLOG("CLOSE_NOWRITE: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
               	    notifyEvent = FileObserver::CloseNoWrite;
+              	    if (!isFileExist(path))
+              	    {
+              	        XLOG("CLOSE_NOWRITE: file is deleted");
+              	        notifyEvent = FileObserver::Delete;
+          	        }
                     break;
   
                 /* File was opened */
@@ -171,11 +186,17 @@ void* ThreadFunc(void* param)
 
             if (notifyEvent != FileObserver::None)
                 delegate->onEvent(notifyEvent, path);
-        }
 
+            if (notifyEvent == FileObserver::Delete)
+            {
+                loop = false;
+                break;
+            }
+        }
         queue_dequeue(q);
     }
 
+    XLOG("inotify_rm_watch");
     inotify_rm_watch(fd, IN_ALL_EVENTS);
 }
 

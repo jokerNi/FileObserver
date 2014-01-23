@@ -62,9 +62,9 @@ void EchoTcpServer::start()
     bzero(&client_addr, sizeof(client_addr));
     while (true)
     {
-        XLOG("enter while loop\n");
+        XLOG("EchoTcpServer::start enter while loop\n");
         socklen_t client_addr_len = sizeof(client_addr);
-        XLOG("server begin accept\n");
+        XLOG("EchoTcpServer::start server begin accept\n");
         communicateSocket = accept(mServerSocket, (sockaddr*)&client_addr, &client_addr_len);
         if (communicateSocket < 0)
         {
@@ -80,7 +80,7 @@ void EchoTcpServer::start()
         char buffer[BUFFERSIZE] = {0};
         int recvMsgSize = 0;
 
-        XLOG("server begin recv\n");
+        XLOG("EchoTcpServer::start server begin recv\n");
         recvMsgSize = recv(communicateSocket, buffer, BUFFERSIZE, 0);
         if (recvMsgSize < 0)
         {
@@ -94,7 +94,7 @@ void EchoTcpServer::start()
         }
         else
         {
-            XLOG("server recv msg success: %s\n", buffer);
+            XLOG("EchoTcpServer::start server recv msg success: %s\n", buffer);
             if (send(communicateSocket, buffer, recvMsgSize, 0) != recvMsgSize)
             {
                 XLOG("server send msg failed");
