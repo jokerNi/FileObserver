@@ -79,6 +79,7 @@ void* ThreadFunc(void* param)
         char* cur_event_file_or_dir = NULL;
         int cur_event_wd;
         int cur_event_cookie;
+        FileObserver::Event notifyEvent;
         while (event = queue_dequeue(q))
         {
             if (event->inot_ev.len)
@@ -91,7 +92,8 @@ void* ThreadFunc(void* param)
 
             cur_event_wd = event->inot_ev.wd;
             cur_event_cookie = event->inot_ev.cookie;
-            
+
+            notifyEvent = FileObserver::None;
             switch (event->inot_ev.mask & 
                    (IN_ALL_EVENTS | IN_UNMOUNT | IN_Q_OVERFLOW | IN_IGNORED))
             {
@@ -99,36 +101,42 @@ void* ThreadFunc(void* param)
                 case IN_ACCESS:
                     XLOG("ACCESS: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::Access;
                     break;
   
                 /* File was modified */
                 case IN_MODIFY:
                     XLOG("MODIFY: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::Modify;
                     break;
   
                 /* File changed attributes */
                 case IN_ATTRIB:
                     XLOG("ATTRIB: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::AttribChanged;
                     break;
   
                 /* File open for writing was closed */
                 case IN_CLOSE_WRITE:
                     XLOG("CLOSE_WRITE: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::CloseWrite;
                     break;
   
                 /* File open read-only was closed */
                 case IN_CLOSE_NOWRITE:
                     XLOG("CLOSE_NOWRITE: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::CloseNoWrite;
                     break;
   
                 /* File was opened */
                 case IN_OPEN:
                     XLOG("OPEN: %s \"%s\" on WD #%i\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::Open;
                     break;
   
                 /* File was moved from X */
@@ -136,27 +144,33 @@ void* ThreadFunc(void* param)
                     XLOG("MOVED_FROM: %s \"%s\" on WD #%i. Cookie=%d\n",
               	      cur_event_file_or_dir, cur_event_filename, cur_event_wd, 
                         cur_event_cookie);
+                    notifyEvent = FileObserver::MovedFrom;
                     break;
 
                 /* File was deleted */
                 case IN_DELETE_SELF:
                     XLOG("DELETE_SELF: %s \"%s\" deleted", cur_event_file_or_dir,
                         cur_event_filename);
-                    delegate->onEvent(FileObserver::Deleted, path);
+                    notifyEvent = FileObserver::Delete;
                     break;
   
                 /* Watch was removed explicitly by inotify_rm_watch or automatically
                               because file was deleted, or file system was unmounted.  */
                 case IN_IGNORED:
                     XLOG("IGNORED: WD #%d\n", cur_event_wd);
+                    notifyEvent = FileObserver::None;
                     break;
   
                 /* Some unknown message received */
                 default:
                     XLOG("UNKNOWN EVENT \"%X\" OCCURRED for file \"%s\" on WD #%i\n",
               	      event->inot_ev.mask, cur_event_filename, cur_event_wd);
+              	    notifyEvent = FileObserver::None;
                     break;
             }
+
+            if (notifyEvent != FileObserver::None)
+                delegate->onEvent(notifyEvent, path);
         }
 
         queue_dequeue(q);

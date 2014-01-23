@@ -22,6 +22,7 @@ void FileDeleteObserver::stopWatching()
 
 void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& path)
 {
-    XLOG("FileDeleteObserver::onEvent delete path=%s", path.c_str());
+    if (event == FileObserver::Delete)
+        XLOG("FileDeleteObserver::onEvent delete path=%s", path.c_str());
 }
 

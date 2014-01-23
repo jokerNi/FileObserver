@@ -9,7 +9,7 @@ import android.app.Activity;
 public class MainActivity extends Activity 
 {
 	private FileObserver mFileObserver;
-	private static final String DEAMON = "daemon";
+	public static final String DEAMON = "daemon";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

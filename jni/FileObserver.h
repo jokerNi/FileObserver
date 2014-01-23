@@ -8,7 +8,15 @@ class FileObserver
 {
 public:
     enum Event {
-        Deleted,
+        None,
+        Access,
+        Modify,
+        AttribChanged,
+        CloseWrite,
+        CloseNoWrite,
+        Open,
+        MovedFrom,
+        Delete,
     };
 
     class Delegate
