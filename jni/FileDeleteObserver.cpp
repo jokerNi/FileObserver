@@ -3,6 +3,7 @@
 #include "MyLog.h"
 #include "SimpleTcpClient.h"
 
+extern bool gKeepAliveDaemonProcess;
 using namespace std;
 
 FileDeleteObserver::FileDeleteObserver(const std::string& path)
@@ -31,6 +32,8 @@ void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& p
         {
             XLOG("FileDeleteObserver::onEvent connect error");
         }
+
+        gKeepAliveDaemonProcess = false;
     }
 }
 

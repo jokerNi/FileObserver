@@ -37,15 +37,14 @@ static void nativeStopWatching(JNIEnv* env, jclass clazz);
 bool isDaemonRunning();
 void* DaemonEchoThread(void* params);
 
+bool gKeepAliveDaemonProcess = true;
+static EchoTcpServer* sEchoServer = NULL;
 static const char* classNamePath = "com/example/fileobserver/MyFileObserver";
 static JNINativeMethod methods[] = 
 {
     {"nativeStartWatching", "(Ljava/lang/String;)V", (void*)nativeStartWatching},
     {"nativeStopWatching", "()V", (void*)nativeStopWatching},
 };
-static std::string sDeamonFlagPath;
-const char* kDaemonRunningFlag = "1";
-const char* kDaemonNoRunningFlag = "0";
 typedef void* (*ThreadProc)(void*);
 int createThread(ThreadProc proc)
 {
@@ -108,15 +107,18 @@ static void realStartWatch(const char* path)
     FileDeleteObserver observer(path);
     observer.startWatching();
 
-    while (true)
+    while (gKeepAliveDaemonProcess)
     {
-        XLOG("realStartWatch in while loop");
+        //XLOG("realStartWatch in while loop");
 
-        usleep(1000 * 60000);
-        break;
+        usleep(1000 * 6000);
+        //break;
         
-        XLOG("realStartWatch leave while loop");
+        //XLOG("realStartWatch leave while loop");
     }
+
+    if (sEchoServer)
+        sEchoServer->stop();
 
     XLOG("realStartWatch exit");
     exit(0);
@@ -126,8 +128,6 @@ static void nativeStartWatching(JNIEnv* env, jclass clazz, jstring jpath)
 {
     const char* path = env->GetStringUTFChars(jpath, NULL);
     XLOG("nativeStartWatching path=%s", path);
-    sDeamonFlagPath = string(path) + "/test";
-
     if (isDaemonRunning())
     {
         XLOG("nativeStartWatching daemon already exist, return");
@@ -161,8 +161,8 @@ void* DaemonEchoThread(void* params)
 {
     XLOG("DaemonEchoThread start");
 
-    EchoTcpServer server(kListenPort);
-    server.start();
+    sEchoServer = new EchoTcpServer(kListenPort);
+    sEchoServer->start();
 
     XLOG("DaemonEchoThread end");
 }

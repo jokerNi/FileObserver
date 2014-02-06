@@ -52,6 +52,7 @@ bool EchoTcpServer::isServerAlive(int port)
 
 void EchoTcpServer::start()
 {
+    XLOG("EchoTcpServer::start begin");
     if (listen(mServerSocket, 60) < 0)
     {
         XLOG("listen failed");
@@ -127,6 +128,7 @@ void EchoTcpServer::start()
     }
     
     close(mServerSocket);
+    XLOG("EchoTcpServer::start end");
 }
 
 void EchoTcpServer::stop()
