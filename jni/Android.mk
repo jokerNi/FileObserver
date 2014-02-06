@@ -16,7 +16,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := inotify-jni
+LOCAL_MODULE    := monitor
 LOCAL_SRC_FILES += \
     inotify-jni.cpp \
     FileObserver.cpp \

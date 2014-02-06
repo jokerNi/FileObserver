@@ -39,7 +39,7 @@ void* DaemonEchoThread(void* params);
 
 bool gKeepAliveDaemonProcess = true;
 static EchoTcpServer* sEchoServer = NULL;
-static const char* classNamePath = "com/example/fileobserver/MyFileObserver";
+static const char* classNamePath = "com/example/fileobserver/NativeFileObserver";
 static JNINativeMethod methods[] = 
 {
     {"nativeStartWatching", "(Ljava/lang/String;)V", (void*)nativeStartWatching},
@@ -100,27 +100,27 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 }
 
 
-static void realStartWatch(const char* path)
+static void StartWatching(const char* path)
 {
-    XLOG("realStartWatch path=%s", path);
+    XLOG("StartWatching path=%s", path);
     createThread(DaemonEchoThread);
     FileDeleteObserver observer(path);
     observer.startWatching();
 
     while (gKeepAliveDaemonProcess)
     {
-        //XLOG("realStartWatch in while loop");
+        //XLOG("StartWatching in while loop");
 
         usleep(1000 * 6000);
         //break;
         
-        //XLOG("realStartWatch leave while loop");
+        //XLOG("StartWatching leave while loop");
     }
 
     if (sEchoServer)
         sEchoServer->stop();
 
-    XLOG("realStartWatch exit");
+    XLOG("StartWatching exit");
     usleep(1000 * 10000);   // Wait a little while for other components finish exist
     exit(0);
 }
@@ -144,7 +144,7 @@ static void nativeStartWatching(JNIEnv* env, jclass clazz, jstring jpath)
     else if (pid == 0)
     {
         XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
-        realStartWatch(path);
+        StartWatching(path);
     }
     else
     {

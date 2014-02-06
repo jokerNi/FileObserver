@@ -17,7 +17,7 @@ public class BootCompleteReceiver extends BroadcastReceiver
 		{
 			Log.d("BootCompleteReceiver::onReceive", "receive complete");
 			
-			FileObserver observer = new MyFileObserver(context.getCacheDir().getAbsolutePath());
+			NativeFileObserver observer = new NativeFileObserver(context.getCacheDir().getAbsolutePath());
 			observer.startWatching();
 		}
 	}
