@@ -25,7 +25,8 @@ LOCAL_SRC_FILES += \
     FileDeleteObserver.cpp \
     event_queue.c \
 
-NDK_ROOT := /usr/local/install/android-ndk-r8e
+#NDK_ROOT := /usr/local/install/android-ndk-r8e
+NDK_ROOT := C:/cygwin/home/Administrator/android-ndk-r8e
 
 LOCAL_LDLIBS += \
     -llog \

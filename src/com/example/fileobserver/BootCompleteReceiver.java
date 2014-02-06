@@ -1,7 +1,5 @@
 package com.example.fileobserver;
 
-import java.io.File;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,11 +16,8 @@ public class BootCompleteReceiver extends BroadcastReceiver
 		if(Intent.ACTION_BOOT_COMPLETED.equals(action)) 
 		{
 			Log.d("BootCompleteReceiver::onReceive", "receive complete");
-			File file = new File(context.getCacheDir() + File.separator + MainActivity.DEAMON);
-			if (!file.exists())
-				file.mkdir();
 			
-			FileObserver observer = new MyFileObserver(file.getAbsolutePath());
+			FileObserver observer = new MyFileObserver(context.getCacheDir().getAbsolutePath());
 			observer.startWatching();
 		}
 	}
