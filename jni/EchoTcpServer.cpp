@@ -17,6 +17,7 @@ using namespace std;
 EchoTcpServer::EchoTcpServer(int port)
 {
     mListenPort = port;
+    mLoop = true;
     
     bzero(&mServerAddr, sizeof(mServerAddr));
     mServerAddr.sin_family = AF_INET;
@@ -60,50 +61,77 @@ void EchoTcpServer::start()
     int communicateSocket;
     struct sockaddr_in client_addr;
     bzero(&client_addr, sizeof(client_addr));
-    while (true)
+    fd_set readFds;
+    struct timeval timeout;
+    
+    while (mLoop)
     {
         XLOG("EchoTcpServer::start enter while loop\n");
-        socklen_t client_addr_len = sizeof(client_addr);
-        XLOG("EchoTcpServer::start server begin accept\n");
-        communicateSocket = accept(mServerSocket, (sockaddr*)&client_addr, &client_addr_len);
-        if (communicateSocket < 0)
+        FD_ZERO(&readFds);
+        FD_SET(mServerSocket, &readFds);
+        int maxFd = mServerSocket + 1;
+        timeout.tv_sec = 6;
+        timeout.tv_usec = 0;
+        
+        switch (select(maxFd, &readFds, NULL, NULL, &timeout))
         {
-            XLOG("accept failed");
-            break;
-        }
-        else
-        {
-            XLOG("Client(IP: %s) connected.\n", inet_ntoa(client_addr.sin_addr));
-        }
-
-        const int BUFFERSIZE = 1024;
-        char buffer[BUFFERSIZE] = {0};
-        int recvMsgSize = 0;
-
-        XLOG("EchoTcpServer::start server begin recv\n");
-        recvMsgSize = recv(communicateSocket, buffer, BUFFERSIZE, 0);
-        if (recvMsgSize < 0)
-        {
-            XLOG("server recv msg failed");
-            break;
-        }
-        else if (recvMsgSize == 0)
-        {
-            XLOG("server recv finished\n");
-            break;
-        }
-        else
-        {
-            XLOG("EchoTcpServer::start server recv msg success: %s\n", buffer);
-            if (send(communicateSocket, buffer, recvMsgSize, 0) != recvMsgSize)
-            {
-                XLOG("server send msg failed");
+            case -1:    // Error
                 break;
-            }
+            case 0:
+                XLOG("EchoTcpServer::start timeout, continue");
+                break;
+            default:
+                if (FD_ISSET(mServerSocket, &readFds))
+                {
+                    socklen_t client_addr_len = sizeof(client_addr);
+                    XLOG("EchoTcpServer::start server begin accept\n");
+                    communicateSocket = accept(mServerSocket, (sockaddr*)&client_addr, &client_addr_len);
+                    if (communicateSocket < 0)
+                    {
+                        XLOG("accept failed");
+                        break;
+                    }
+                    else
+                    {
+                        XLOG("Client(IP: %s) connected.\n", inet_ntoa(client_addr.sin_addr));
+                    }
+        
+                    const int BUFFERSIZE = 1024;
+                    char buffer[BUFFERSIZE] = {0};
+                    int recvMsgSize = 0;
+        
+                    XLOG("EchoTcpServer::start server begin recv\n");
+                    recvMsgSize = recv(communicateSocket, buffer, BUFFERSIZE, 0);
+                    if (recvMsgSize < 0)
+                    {
+                        XLOG("server recv msg failed");
+                        break;
+                    }
+                    else if (recvMsgSize == 0)
+                    {
+                        XLOG("server recv finished\n");
+                        break;
+                    }
+                    else
+                    {
+                        XLOG("EchoTcpServer::start server recv msg success: %s\n", buffer);
+                        if (send(communicateSocket, buffer, recvMsgSize, 0) != recvMsgSize)
+                        {
+                            XLOG("server send msg failed");
+                            break;
+                        }
+                    }
+                    close(communicateSocket);
+                }
         }
     }
     
-    close(communicateSocket);
+    close(mServerSocket);
+}
+
+void EchoTcpServer::stop()
+{
+    mLoop = false;
 }
 
 void EchoTcpServer::createSocket()
