@@ -121,6 +121,7 @@ static void realStartWatch(const char* path)
         sEchoServer->stop();
 
     XLOG("realStartWatch exit");
+    usleep(1000 * 10000);   // Wait a little while for other components finish exist
     exit(0);
 }
 
