@@ -42,13 +42,9 @@ static int createThread(ThreadProc proc, void* params)
 
 static void* BackendThread(void* params)
 {
-    XLOG("DaemonEchoThread start");
-
     int port = (int)params;
     sBackendServer = new BackendServer(port);
     sBackendServer->startListening();
-
-    XLOG("DaemonEchoThread end");
 }
 
 BackendServer::BackendServer(int port)
@@ -88,7 +84,6 @@ bool BackendServer::IsServerAlive(int port)
     is.setBuffer(buffer, length);
     recvMsg.readFrom(is);
 
-    XLOG("BackendServer::isServerAlive recv type = %d\n", recvMsg.eCtrlType);
     if (length > 0 && recvMsg.eCtrlType == E_CTRL_HELLO)
         return true;
 
@@ -97,10 +92,10 @@ bool BackendServer::IsServerAlive(int port)
 
 int BackendServer::Start(int port)
 {
-    XLOG("StartWatching begin");
+    XLOG("BackendServer::Start port=%d", port);
     if (IsServerAlive(port))
     {
-        XLOG("BackendServer::start server is alive, return");
+        XLOG("Server is alive, return");
         return 0;
     }
 
@@ -184,7 +179,6 @@ void BackendServer::startListening()
                 failTimes++;
                 break;
             case 0:
-                XLOG("BackendServer::startListening timeout, continue");
                 break;
             default:
                 if (FD_ISSET(mServerSocket, &readFds))
@@ -202,7 +196,6 @@ void BackendServer::startListening()
                         XLOG("Client(IP: %s) connected.\n", inet_ntoa(client_addr.sin_addr));
                     }
 
-                    XLOG("BackendServer::startListening server begin recv\n");
                     char buffer[kBufferSize] = {0};
                     int recvMsgSize = recv(communicateSocket, buffer, kBufferSize, 0);
                     if (recvMsgSize < 0)
@@ -212,7 +205,7 @@ void BackendServer::startListening()
                     }
                     else if (recvMsgSize == 0)
                     {
-                        XLOG("server recv finished\n");
+                        XLOG("server recv finished");
                         break;
                     }
                     else
@@ -249,7 +242,7 @@ int BackendServer::handle(int commSock, const char* buf, int length)
         case E_CTRL_HELLO:
             if (send(commSock, buf, length, 0) != length)
             {
-                XLOG("BackendServer::handle send msg failed");
+                XLOG("send msg failed");
                 break;
             }
             break;
