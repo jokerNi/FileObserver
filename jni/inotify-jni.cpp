@@ -32,13 +32,6 @@
 
 using namespace std;
 
-#if 0
-static int registerNatives(JNIEnv* env);
-static int registerNativeMethods(JNIEnv* env, const char* className, JNINativeMethod* gMethods, int numMethods);
-static void nativeStartWatching(JNIEnv* env, jclass clazz, jstring jpath);
-static void nativeStopWatching(JNIEnv* env, jclass clazz);
-static void nativeSetOnDeleteRequestInfo(JNIEnv* env, jclass clazz, jstring jurl, jstring jguid, jstring jversion);
-#endif
 static void reallyStartWatching(const char* path);
 bool isDaemonRunning();
 void* DaemonEchoThread(void* params);
@@ -49,16 +42,6 @@ static EchoTcpServer* sEchoServer = NULL;
 static string sUrl;
 static string sGuid;
 static string sVersion;
-
-#if 0
-static const char* classNamePath = "com/example/fileobserver/NativeFileObserver";
-static JNINativeMethod methods[] = 
-{
-    {"nativeStartWatching", "(Ljava/lang/String;)V", (void*)nativeStartWatching},
-    {"nativeStopWatching", "()V", (void*)nativeStopWatching},
-    {"nativeSetOnDeleteRequestInfo", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",(void*)nativeSetOnDeleteRequestInfo},
-};
-#endif
 
 typedef void* (*ThreadProc)(void*);
 int createThread(ThreadProc proc)
@@ -77,31 +60,6 @@ int createThread(ThreadProc proc)
 }
 static const int kListenPort = 53000;
 
-#if 0
-static int registerNatives(JNIEnv* env)
-{
-    if (!registerNativeMethods(env, classNamePath, methods, sizeof(methods)/sizeof(methods[0])))
-        return JNI_FALSE;
-
-    return JNI_TRUE;
-}
- 
-static int registerNativeMethods(JNIEnv* env, const char* className,  
-    JNINativeMethod* gMethods, int numMethods)  
-{
-    jclass clazz;  
-  
-    clazz = env->FindClass(className);  
-    if (clazz == NULL)  
-        return JNI_FALSE;
-  
-    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0)  
-        return JNI_FALSE;
-
-    return JNI_TRUE;  
-}
-#endif
-
 static void sighandler(int sig_no)
 {
     XLOG("sighandler: %d", sig_no);
@@ -115,14 +73,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     JNIEnv* env = NULL;
     jint result = -1;
-
-#if 0
-    if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) 
-        return result;
-
-    if (registerNatives(env) < 0)
-        return result;
-#endif
 
     env = base::AttachCurrentThread();
     if (env == NULL)
@@ -213,58 +163,6 @@ static void reallyStartWatching(const char* path)
     usleep(1000 * 1000 * 10);   // Wait a while for other components finish exist
     exit(0);
 }
-
-#if 0
-static void nativeStartWatching(JNIEnv* env, jclass clazz, jstring jpath)
-{
-    XLOG("nativeStartWatching begin");
-    const char* path = env->GetStringUTFChars(jpath, NULL);
-    if (isDaemonRunning())
-    {
-        XLOG("nativeStartWatching daemon already exist, return");
-        return;
-    }
-
-    pid_t pid;
-    pid = fork();
-    if (pid < 0)
-    {
-        XLOG("fork failed");
-    }
-    else if (pid == 0)
-    {
-        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
-        StartWatching(path);
-    }
-    else
-    {
-        XLOG("in origin process, id is %d", getpid());
-        env->ReleaseStringUTFChars(jpath, path);
-    }
-}
-
-static void nativeStopWatching(JNIEnv* env, jclass clazz)
-{
-    XLOG("nativeStopWatching");
-}
-
-static void nativeSetOnDeleteRequestInfo(JNIEnv* env, jclass clazz, jstring jurl, jstring jguid, jstring jversion)
-{
-    const char* url = env->GetStringUTFChars(jurl, NULL);
-    const char* guid = env->GetStringUTFChars(jguid, NULL);
-    const char* version = env->GetStringUTFChars(jversion, NULL);
-
-    sUrl = url;
-    sGuid = guid;
-    sVersion = version;
-    
-    XLOG("nativeSetOnDeleteRequestInfo url=%s, guid=%s, version=%s", url, guid, version);
-
-    env->ReleaseStringUTFChars(jurl, url);
-    env->ReleaseStringUTFChars(jguid, guid);
-    env->ReleaseStringUTFChars(jversion, version);
-}
-#endif
 
 void* DaemonEchoThread(void* params)
 {
