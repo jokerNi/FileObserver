@@ -21,6 +21,7 @@ using namespace Observer;
 
 const int kSelectTimeout = 6;      // Seconds
 const int kMaxRetryTimes = 5;
+const int kBufferSize = 4096;
 
 static bool gKeepAliveDaemonProcess = true;
 static BackendServer* sBackendServer = NULL;
@@ -59,6 +60,7 @@ BackendServer::BackendServer(int port)
 {
     mListenPort = port;
     mLoop = true;
+    mFileObserver = NULL;
     
     bzero(&mServerAddr, sizeof(mServerAddr));
     mServerAddr.sin_family = AF_INET;
@@ -83,11 +85,8 @@ bool BackendServer::IsServerAlive(int port)
     msg.writeTo(os);
     client.write(os.getBuffer(), os.getLength());
     
-    const int BUFFER_SIZE = 100;
-    char buffer[BUFFER_SIZE] = {0};
-    int length = 0;
-    length = client.read(buffer, BUFFER_SIZE);
-    XLOG("BackendServer::isServerAlive recv %s\n", buffer);
+    char buffer[kBufferSize] = {0};
+    int length = client.read(buffer, kBufferSize);
 
     ControlMsg recvMsg;
     JceInputStream<BufferReader> is;
@@ -96,15 +95,12 @@ bool BackendServer::IsServerAlive(int port)
 
     XLOG("BackendServer::isServerAlive recv type = %d\n", recvMsg.eCtrlType);
     if (length > 0 && recvMsg.eCtrlType == E_CTRL_HELLO)
-    {
-        XLOG("BackendServer::isServerAlive return true");
         return true;
-    }
 
     return false;
 }
 
-int BackendServer::Start(int port, const char* path)
+int BackendServer::Start(int port)
 {
     XLOG("StartWatching begin");
     if (IsServerAlive(port))
@@ -122,21 +118,12 @@ int BackendServer::Start(int port, const char* path)
     else if (pid == 0)
     {
         XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
-        XLOG("BackendServer::start path=%s", path);
         sPort = port;
         createThread(BackendThread);
-        FileDeleteObserver observer(path);
-        observer.setHttpRequestOnDelete(sUrl, sGuid, sVersion);
-        observer.startWatching();
-
+        
         while (gKeepAliveDaemonProcess)
         {
-            //XLOG("StartWatching in while loop");
-
             usleep(1000 * 1000 * 2);
-            //break;
-            
-            //XLOG("StartWatching leave while loop");
         }
 
         if (sBackendServer)
@@ -158,11 +145,30 @@ void BackendServer::Stop()
     gKeepAliveDaemonProcess = false;
 }
 
+int BackendServer::SendRequest(int port, const char* buffer, int length)
+{
+    if (buffer == NULL || length == 0)
+        return -1;
+
+    SimpleTcpClient client;
+    if (client.connect("127.0.0.1", port) < 0)
+        return -2;
+
+    client.write(buffer, length);
+    
+    return 0;
+}
+
 void BackendServer::SetData(std::string url, std::string guid, std::string version)
 {
     sUrl = url;
     sGuid = guid;
     sVersion = version;
+}
+
+int BackendServer::Port()
+{
+    return sPort;
 }
 
 void BackendServer::startListening()
@@ -213,13 +219,10 @@ void BackendServer::startListening()
                     {
                         XLOG("Client(IP: %s) connected.\n", inet_ntoa(client_addr.sin_addr));
                     }
-        
-                    const int BUFFERSIZE = 1024;
-                    char buffer[BUFFERSIZE] = {0};
-                    int recvMsgSize = 0;
-        
+
                     XLOG("BackendServer::startListening server begin recv\n");
-                    recvMsgSize = recv(communicateSocket, buffer, BUFFERSIZE, 0);
+                    char buffer[kBufferSize] = {0};
+                    int recvMsgSize = recv(communicateSocket, buffer, kBufferSize, 0);
                     if (recvMsgSize < 0)
                     {
                         XLOG("server recv msg failed");
@@ -232,12 +235,7 @@ void BackendServer::startListening()
                     }
                     else
                     {
-                        XLOG("BackendServer::startListening server recv msg success: %s\n", buffer);
-                        if (send(communicateSocket, buffer, recvMsgSize, 0) != recvMsgSize)
-                        {
-                            XLOG("server send msg failed");
-                            break;
-                        }
+                        handle(communicateSocket, buffer, recvMsgSize);
                     }
                     close(communicateSocket);
                 }
@@ -251,6 +249,61 @@ void BackendServer::startListening()
 void BackendServer::stopListening()
 {
     mLoop = false;
+}
+
+int BackendServer::handle(int commSock, const char* buf, int length)
+{
+    if (commSock < 0 || buf == NULL || length == 0)
+        return 0;
+    
+    ControlMsg recvMsg;
+    JceInputStream<BufferReader> is;
+    is.setBuffer(buf, length);
+    recvMsg.readFrom(is);
+
+    XLOG("BackendServer::handle CtrlType=%d", recvMsg.eCtrlType);
+    switch (recvMsg.eCtrlType)
+    {
+        case E_CTRL_HELLO:
+            if (send(commSock, buf, length, 0) != length)
+            {
+                XLOG("BackendServer::handle send msg failed");
+                break;
+            }
+            break;
+        case E_CTRL_FILE_PATH:
+            {
+                FilePath filePath;
+                JceInputStream<BufferReader> is;
+                is.setBuffer(recvMsg.vbData);
+                filePath.readFrom(is);
+                XLOG("BackendServer::handle path=%s", filePath.sFilePath.c_str());
+                if (mFileObserver != NULL)
+                {
+                    delete mFileObserver;
+                    mFileObserver = NULL;
+                }
+                mFileObserver = new FileDeleteObserver(filePath.sFilePath);
+                mFileObserver->startWatching();
+            }
+            break;
+        case E_CTRL_REQ_ON_DEL:
+            XLOG("BackendServer::handle mFileObserver=%p", mFileObserver);
+            if (mFileObserver != NULL)
+            {
+                ReqOnDel req;
+                JceInputStream<BufferReader> is;
+                is.setBuffer(recvMsg.vbData);
+                req.readFrom(is);
+                XLOG("BackendServer::handle guid=%s, url=%s", req.sGuid.c_str(), req.sUrl.c_str());
+                mFileObserver->setHttpRequestOnDelete(req.sUrl, req.sGuid, "1.0");
+            }
+            break;
+        default:
+            break;
+    }
+    
+    return 0;
 }
 
 void BackendServer::createSocket()

@@ -21,20 +21,19 @@
 #include <fstream>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <stdio.h>
-#include <android/log.h>
-#include <stdlib.h>
 #include "MyLog.h"
 #include "BackendServer.h"
 #include "SimpleTcpClient.h"
 #include "FileDeleteObserver.h"
 #include "jni/NativeFileObserver_jni.h"
 #include "base/jni_register_helper.h"
+#include "jce_header/Observer.h"
+#include "ProtocolUtil.h"
 
 using namespace std;
+using namespace Observer;
 
-static const int kListenPort = 53000;
+extern int kListenPort;
 
 namespace NativeFileObserver 
 {
@@ -51,10 +50,20 @@ void NativeFileObserver::startWatching(JNIEnv* env, jobject obj, jstring jpath)
 {
     XLOG("NativeFileObserver::startWatching");
     const char* path = env->GetStringUTFChars(jpath, NULL);
-    if (!BackendServer::IsServerAlive(kListenPort))
-    {
-        BackendServer::Start(kListenPort, path);
-    }
+
+    FilePath filePath;
+    filePath.sFilePath = path;
+    string strPath;
+    ProtocolUtil::writeTo(filePath, strPath);
+    
+    ControlMsg msg;
+    msg.eCtrlType = E_CTRL_FILE_PATH;
+    msg.sSeq = "0";
+    msg.vbData.assign(strPath.begin(), strPath.end());
+
+    JceOutputStream<BufferWriter> os;
+    msg.writeTo(os);
+    BackendServer::SendRequest(kListenPort, os.getBuffer(), os.getLength());
 }
 
 void NativeFileObserver::stopWatching(JNIEnv* env, jobject obj)
@@ -69,8 +78,21 @@ void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstrin
     const char* guid = env->GetStringUTFChars(jguid, NULL);
     const char* version = env->GetStringUTFChars(jversion, NULL);
 
-    BackendServer::SetData(url, guid, version);
+    string data;
+    ReqOnDel req;
+    req.sUrl = url;
+    req.sGuid = guid;
+    ProtocolUtil::writeTo(req, data);
+    
+    ControlMsg msg;
+    msg.eCtrlType = E_CTRL_REQ_ON_DEL;
+    msg.sSeq = "0";
+    msg.vbData.assign(data.begin(), data.end());
 
+    JceOutputStream<BufferWriter> os;
+    msg.writeTo(os);
+    BackendServer::SendRequest(kListenPort, os.getBuffer(), os.getLength());
+    
     env->ReleaseStringUTFChars(jurl, url);
     env->ReleaseStringUTFChars(jguid, guid);
     env->ReleaseStringUTFChars(jversion, version);

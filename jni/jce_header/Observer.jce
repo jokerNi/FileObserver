@@ -3,8 +3,9 @@ module Observer
 
 enum E_CTRL_TYPE
 {
-    E_CTRL_HELLO	         = 0,        // hello通信测试
-    E_CTRL_HTTP_UPDATE       = 1,        // 更新上报数据
+    E_CTRL_HELLO		       	= 0,        // hello通信测试
+	E_CTRL_FILE_PATH			= 1,		// 设置监控路径
+    E_CTRL_REQ_ON_DEL		   	= 2,        // 更新上报数据
 };
 
 //EMT_CONTROL_MSG
@@ -13,6 +14,17 @@ struct ControlMsg
     0 optional    E_CTRL_TYPE         eCtrlType;        // E_CTRL_TYPE
     1 optional    string              sSeq;             // 下发的请求序列号
     2 optional    vector<byte>        vbData;           // 数据包
+};
+
+struct FilePath
+{
+	0 optional    string			  sFilePath;		// 监控的文件路径
+};
+
+struct ReqOnDel
+{
+	0 optional    string			  sUrl;				// 发送请求的url
+	1 optional    string			  sGuid;			// GUID信息
 };
 
 };

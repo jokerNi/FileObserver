@@ -19,21 +19,24 @@ namespace Observer
     enum E_CTRL_TYPE
     {
         E_CTRL_HELLO = 0,
-        E_CTRL_HTTP_UPDATE = 1,
+        E_CTRL_FILE_PATH = 1,
+        E_CTRL_REQ_ON_DEL = 2,
     };
     inline string etos(const E_CTRL_TYPE & e)
     {
         switch(e)
         {
             case E_CTRL_HELLO: return "E_CTRL_HELLO";
-            case E_CTRL_HTTP_UPDATE: return "E_CTRL_HTTP_UPDATE";
+            case E_CTRL_FILE_PATH: return "E_CTRL_FILE_PATH";
+            case E_CTRL_REQ_ON_DEL: return "E_CTRL_REQ_ON_DEL";
             default: return "";
         }
     }
     inline int stoe(const string & s, E_CTRL_TYPE & e)
     {
         if(s == "E_CTRL_HELLO")  { e=E_CTRL_HELLO; return 0;}
-        if(s == "E_CTRL_HTTP_UPDATE")  { e=E_CTRL_HTTP_UPDATE; return 0;}
+        if(s == "E_CTRL_FILE_PATH")  { e=E_CTRL_FILE_PATH; return 0;}
+        if(s == "E_CTRL_REQ_ON_DEL")  { e=E_CTRL_REQ_ON_DEL; return 0;}
 
         return -1;
     }
@@ -88,11 +91,105 @@ namespace Observer
         return !(l == r);
     }
 
+    struct FilePath : public taf::JceStructBase
+    {
+    public:
+        static string className()
+        {
+            return "Observer.FilePath";
+        }
+        static string MD5()
+        {
+            return "2e45701425f70f0e5c722cbe2c3f508e";
+        }
+        FilePath()
+        :sFilePath("")
+        {
+        }
+        void resetDefautlt()
+        {
+            sFilePath = "";
+        }
+        template<typename WriterT>
+        void writeTo(taf::JceOutputStream<WriterT>& _os) const
+        {
+            _os.write(sFilePath, 0);
+        }
+        template<typename ReaderT>
+        void readFrom(taf::JceInputStream<ReaderT>& _is)
+        {
+            resetDefautlt();
+            _is.read(sFilePath, 0, false);
+        }
+    public:
+        std::string sFilePath;
+    };
+    inline bool operator==(const FilePath&l, const FilePath&r)
+    {
+        return l.sFilePath == r.sFilePath;
+    }
+    inline bool operator!=(const FilePath&l, const FilePath&r)
+    {
+        return !(l == r);
+    }
+
+    struct ReqOnDel : public taf::JceStructBase
+    {
+    public:
+        static string className()
+        {
+            return "Observer.ReqOnDel";
+        }
+        static string MD5()
+        {
+            return "325d87d477a8cf7a6468ed6bb39da964";
+        }
+        ReqOnDel()
+        :sUrl(""),sGuid("")
+        {
+        }
+        void resetDefautlt()
+        {
+            sUrl = "";
+            sGuid = "";
+        }
+        template<typename WriterT>
+        void writeTo(taf::JceOutputStream<WriterT>& _os) const
+        {
+            _os.write(sUrl, 0);
+            _os.write(sGuid, 1);
+        }
+        template<typename ReaderT>
+        void readFrom(taf::JceInputStream<ReaderT>& _is)
+        {
+            resetDefautlt();
+            _is.read(sUrl, 0, false);
+            _is.read(sGuid, 1, false);
+        }
+    public:
+        std::string sUrl;
+        std::string sGuid;
+    };
+    inline bool operator==(const ReqOnDel&l, const ReqOnDel&r)
+    {
+        return l.sUrl == r.sUrl && l.sGuid == r.sGuid;
+    }
+    inline bool operator!=(const ReqOnDel&l, const ReqOnDel&r)
+    {
+        return !(l == r);
+    }
+
 
 }
 
 #define Observer_ControlMsg_JCE_COPY_STRUCT_HELPER   \
         jce_copy_struct(a.eCtrlType,b.eCtrlType);jce_copy_struct(a.sSeq,b.sSeq);jce_copy_struct(a.vbData,b.vbData);
+
+#define Observer_FilePath_JCE_COPY_STRUCT_HELPER   \
+        jce_copy_struct(a.sFilePath,b.sFilePath);
+
+#define Observer_ReqOnDel_JCE_COPY_STRUCT_HELPER   \
+        jce_copy_struct(a.sUrl,b.sUrl);jce_copy_struct(a.sGuid,b.sGuid);
 
 
 

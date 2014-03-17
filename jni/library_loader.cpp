@@ -1,8 +1,11 @@
+#include <jni.h>
 #include "base/jni_android.h"
 #include "base/jni_register_helper.h"
 #include "base/jni_log.h"
 #include "MyLog.h"
-#include <jni.h>
+#include "BackendServer.h"
+
+int kListenPort = 53000;
 
 static void sighandler( int sig_no )
 {
@@ -20,6 +23,11 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved)
 
     if (!base::JNIRegisterHelper::getInstance().doRegister(env)) {
       return -1;
+    }
+
+    if (!BackendServer::IsServerAlive(kListenPort))
+    {
+        BackendServer::Start(kListenPort);
     }
 
     XLOG("JNI_OnLoad end");  
