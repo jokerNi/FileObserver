@@ -14,9 +14,7 @@ public:
     static bool IsServerAlive(int port);
     static int Start(int port);
     static void Stop();
-    static int SendRequest(int port, const char* buffer, int length);
-    static void SetData(std::string url, std::string guid, std::string version);
-    static int Port();
+    static int SendRequest(int port, const char* buffer, int length); 
 
 	void startListening();
 	void stopListening();

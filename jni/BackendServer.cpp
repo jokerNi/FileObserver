@@ -22,14 +22,10 @@ const int kMaxRetryTimes = 5;
 const int kBufferSize = 4096;
 
 static bool gKeepAliveDaemonProcess = true;
-static BackendServer* sBackendServer = NULL;
-static int sPort;
-static string sUrl;
-static string sGuid;
-static string sVersion;
-
+static BackendServer* sBackendServer = NULL; 
+ 
 typedef void* (*ThreadProc)(void*);
-static int createThread(ThreadProc proc)
+static int createThread(ThreadProc proc, void* params)
 {
     bool success = false;
 
@@ -37,7 +33,7 @@ static int createThread(ThreadProc proc)
     pthread_attr_t attributes;
     pthread_attr_init(&attributes);
 
-    success = !pthread_create(&threadId, &attributes, proc, NULL);
+    success = !pthread_create(&threadId, &attributes, proc, params);
 
     pthread_attr_destroy(&attributes);
 
@@ -48,7 +44,8 @@ static void* BackendThread(void* params)
 {
     XLOG("DaemonEchoThread start");
 
-    sBackendServer = new BackendServer(sPort);
+    int port = (int)params;
+    sBackendServer = new BackendServer(port);
     sBackendServer->startListening();
 
     XLOG("DaemonEchoThread end");
@@ -76,12 +73,12 @@ bool BackendServer::IsServerAlive(int port)
     if (client.connect("127.0.0.1", port) < 0)
         return false;
 
+    string send;
     ControlMsg msg;
     msg.eCtrlType = E_CTRL_HELLO;
     msg.sSeq = "0";
-    JceOutputStream<BufferWriter> os;
-    msg.writeTo(os);
-    client.write(os.getBuffer(), os.getLength());
+    ProtocolUtil::writeTo(msg, send);
+    client.write(send.c_str(), send.length());
     
     char buffer[kBufferSize] = {0};
     int length = client.read(buffer, kBufferSize);
@@ -115,9 +112,8 @@ int BackendServer::Start(int port)
     }
     else if (pid == 0)
     {
-        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
-        sPort = port;
-        createThread(BackendThread);
+        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid()); 
+        createThread(BackendThread, (void*)port);
         
         while (gKeepAliveDaemonProcess)
         {
@@ -155,19 +151,7 @@ int BackendServer::SendRequest(int port, const char* buffer, int length)
     client.write(buffer, length);
     
     return 0;
-}
-
-void BackendServer::SetData(std::string url, std::string guid, std::string version)
-{
-    sUrl = url;
-    sGuid = guid;
-    sVersion = version;
-}
-
-int BackendServer::Port()
-{
-    return sPort;
-}
+} 
 
 void BackendServer::startListening()
 {
