@@ -17,7 +17,11 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := monitor
+BASE_SRC_FILES  := base/jni_android.cpp \
+                   base/scoped_java_ref.cpp
+				   
 LOCAL_SRC_FILES += \
+	$(BASE_SRC_FILES) \
     inotify-jni.cpp \
     FileObserver.cpp \
     EchoTcpServer.cpp \
