@@ -15,6 +15,7 @@
  *
  */
 
+#include "NativeFileObserver.h"
 #include <jni.h>
 #include <string>
 #include <fstream>
@@ -61,55 +62,9 @@ int createThread(ThreadProc proc)
 }
 static const int kListenPort = 53000;
 
-static void StartWatching(JNIEnv* env, jobject obj, jstring jpath)
+static jint CreateHandler(JNIEnv* env, jobject obj)
 {
-    XLOG("StartWatching begin");
-    const char* path = env->GetStringUTFChars(jpath, NULL);
-    if (isDaemonRunning())
-    {
-        XLOG("StartWatching daemon already exist, return");
-        return;
-    }
-
-    pid_t pid;
-    pid = fork();
-    if (pid < 0)
-    {
-        XLOG("fork failed");
-    }
-    else if (pid == 0)
-    {
-        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
-        reallyStartWatching(path);
-    }
-    else
-    {
-        XLOG("in origin process, id is %d", getpid());
-        env->ReleaseStringUTFChars(jpath, path);
-    }
-}
-
-static void StopWatching(JNIEnv* env, jobject obj)
-{
-    XLOG("nativeStopWatching");
-}
-
-static void SetOnDeleteRequestInfo(JNIEnv* env, jobject obj, jstring jurl, 
-    jstring jguid, jstring jversion)
-{
-    const char* url = env->GetStringUTFChars(jurl, NULL);
-    const char* guid = env->GetStringUTFChars(jguid, NULL);
-    const char* version = env->GetStringUTFChars(jversion, NULL);
-
-    sUrl = url;
-    sGuid = guid;
-    sVersion = version;
-    
-    XLOG("nativeSetOnDeleteRequestInfo url=%s, guid=%s, version=%s", url, guid, version);
-
-    env->ReleaseStringUTFChars(jurl, url);
-    env->ReleaseStringUTFChars(jguid, guid);
-    env->ReleaseStringUTFChars(jversion, version);
+    return (jint)(new NativeFileObserver(env, obj));
 }
 
 static void reallyStartWatching(const char* path)
@@ -152,6 +107,62 @@ bool isDaemonRunning()
 {
     return EchoTcpServer::isServerAlive(kListenPort);
 }
+
+NativeFileObserver::NativeFileObserver(JNIEnv *env, jobject obj)
+{
+}
+
+void NativeFileObserver::startWatching(JNIEnv* env, jobject obj, jstring jpath)
+{
+    XLOG("StartWatching begin");
+    const char* path = env->GetStringUTFChars(jpath, NULL);
+    if (isDaemonRunning())
+    {
+        XLOG("StartWatching daemon already exist, return");
+        return;
+    }
+
+    pid_t pid;
+    pid = fork();
+    if (pid < 0)
+    {
+        XLOG("fork failed");
+    }
+    else if (pid == 0)
+    {
+        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
+        reallyStartWatching(path);
+    }
+    else
+    {
+        XLOG("in origin process, id is %d", getpid());
+        env->ReleaseStringUTFChars(jpath, path);
+    }
+}
+
+void NativeFileObserver::stopWatching(JNIEnv* env, jobject obj)
+{
+    XLOG("nativeStopWatching");
+}
+
+void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstring jurl, 
+            jstring jguid, jstring jversion)
+{
+    const char* url = env->GetStringUTFChars(jurl, NULL);
+    const char* guid = env->GetStringUTFChars(jguid, NULL);
+    const char* version = env->GetStringUTFChars(jversion, NULL);
+
+    sUrl = url;
+    sGuid = guid;
+    sVersion = version;
+    
+    XLOG("nativeSetOnDeleteRequestInfo url=%s, guid=%s, version=%s", url, guid, version);
+
+    env->ReleaseStringUTFChars(jurl, url);
+    env->ReleaseStringUTFChars(jguid, guid);
+    env->ReleaseStringUTFChars(jversion, version);
+}
+
 }
 
 BASE_REGISTER_JNI_FUNC(NativeFileObserver, NativeFileObserver::RegisterNativesImpl)

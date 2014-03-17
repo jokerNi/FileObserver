@@ -32,15 +32,32 @@ jclass g_NativeFileObserver_clazz = NULL;
 }  // namespace
 
 namespace NativeFileObserver {
-static void StartWatching(JNIEnv* env, jobject obj,
-    jstring path);
+static jint CreateHandler(JNIEnv* env, jobject obj);
 
-static void StopWatching(JNIEnv* env, jobject obj);
+static void StartWatching(JNIEnv* env, jobject obj,
+    jint handler,
+    jstring path)
+{
+    NativeFileObserver* native = reinterpret_cast<NativeFileObserver*>(handler);
+    return native->startWatching(env, obj, path);
+}
+
+static void StopWatching(JNIEnv* env, jobject obj,
+    jint handler)
+{
+    NativeFileObserver* native = reinterpret_cast<NativeFileObserver*>(handler);
+    return native->stopWatching(env, obj);
+}
 
 static void SetOnDeleteRequestInfo(JNIEnv* env, jobject obj,
+    jint handler,
     jstring url,
     jstring guid,
-    jstring version);
+    jstring version)
+{
+    NativeFileObserver* native = reinterpret_cast<NativeFileObserver*>(handler);
+    return native->setOnDeleteRequestInfo(env, obj, url, guid, version);
+}
 
 // Step 2: method stubs.
 
@@ -51,17 +68,24 @@ static bool RegisterNativesImpl(JNIEnv* env) {
   g_NativeFileObserver_clazz = reinterpret_cast<jclass>(env->NewGlobalRef(
       env->FindClass(kNativeFileObserverClassPath)));
   static const JNINativeMethod kMethodsNativeFileObserver[] = {
+    { "nativeCreateHandler",
+"("
+")"
+"I", reinterpret_cast<void*>(CreateHandler) },
     { "nativeStartWatching",
 "("
+"I"
 "Ljava/lang/String;"
 ")"
 "V", reinterpret_cast<void*>(StartWatching) },
     { "nativeStopWatching",
 "("
+"I"
 ")"
 "V", reinterpret_cast<void*>(StopWatching) },
     { "nativeSetOnDeleteRequestInfo",
 "("
+"I"
 "Ljava/lang/String;"
 "Ljava/lang/String;"
 "Ljava/lang/String;"
@@ -85,5 +109,4 @@ static bool RegisterNativesImpl(JNIEnv* env) {
   return true;
 }
 }
-
 #endif  // com_example_fileobserver_NativeFileObserver_JNI
