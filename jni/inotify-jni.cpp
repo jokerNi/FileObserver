@@ -28,6 +28,7 @@
 #include "SimpleTcpClient.h"
 #include "FileDeleteObserver.h"
 #include "jni/NativeFileObserver_jni.h"
+#include "base/jni_register_helper.h"
 #include <curl/curl.h>
 
 using namespace std;
@@ -78,7 +79,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     if (env == NULL)
         return result;
 
-    if (!RegisterNativesImpl(env))
+    if (!base::JNIRegisterHelper::getInstance().doRegister(env)) 
         return result;
 
     XLOG("JNI_OnLoad end");    
@@ -209,4 +210,6 @@ int testCurl()
   }
   return 0;
 }
+
+BASE_REGISTER_JNI_FUNC(native_fileobserver, RegisterNativesImpl)
 
