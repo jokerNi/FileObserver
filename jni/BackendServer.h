@@ -9,12 +9,12 @@ class BackendServer
 {
 public:
     BackendServer(int port);
-    static bool isServerAlive(int port);
-    static int start(int port, const char* path);
-    static void stop();
-    static void setData(std::string url, std::string guid, std::string version);
-	void startInternal();
-	void stopInternal();
+    static bool IsServerAlive(int port);
+    static int Start(int port, const char* path);
+    static void Stop();
+    static void SetData(std::string url, std::string guid, std::string version);
+	void startListening();
+	void stopListening();
 
 private:
     void createSocket();

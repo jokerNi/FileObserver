@@ -4,9 +4,9 @@
 #include <curl/curl.h>
 #include "MyLog.h"
 #include "SimpleTcpClient.h"
+#include "BackendServer.h"
 
 const int kFailRetryTimes = 10;
-extern bool gKeepAliveDaemonProcess;
 using namespace std;
 
 FileDeleteObserver::FileDeleteObserver(const std::string& path)
@@ -42,7 +42,7 @@ void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& p
     else if (event == FileObserver::Error)
     {
         XLOG("FileDeleteObserver::onEvent receive error");
-        gKeepAliveDaemonProcess = false;
+        BackendServer::Stop();
     }
 }
 
@@ -63,7 +63,7 @@ void FileDeleteObserver::onDelete(const std::string& path)
         }
     }
     
-    gKeepAliveDaemonProcess = false;
+    BackendServer::Stop();
 }
 
 int FileDeleteObserver::sendRequest()

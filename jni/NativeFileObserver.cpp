@@ -49,18 +49,17 @@ NativeFileObserver::NativeFileObserver(JNIEnv *env, jobject obj)
 
 void NativeFileObserver::startWatching(JNIEnv* env, jobject obj, jstring jpath)
 {
-
-    XLOG("StartWatching begin");
+    XLOG("NativeFileObserver::startWatching");
     const char* path = env->GetStringUTFChars(jpath, NULL);
-    if (!BackendServer::isServerAlive(kListenPort))
+    if (!BackendServer::IsServerAlive(kListenPort))
     {
-        BackendServer::start(kListenPort, path);
+        BackendServer::Start(kListenPort, path);
     }
 }
 
 void NativeFileObserver::stopWatching(JNIEnv* env, jobject obj)
 {
-    XLOG("nativeStopWatching");
+    XLOG("NativeFileObserver::stopWatching");
 }
 
 void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstring jurl, 
@@ -70,7 +69,7 @@ void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstrin
     const char* guid = env->GetStringUTFChars(jguid, NULL);
     const char* version = env->GetStringUTFChars(jversion, NULL);
 
-    BackendServer::setData(url, guid, version);
+    BackendServer::SetData(url, guid, version);
 
     env->ReleaseStringUTFChars(jurl, url);
     env->ReleaseStringUTFChars(jguid, guid);
