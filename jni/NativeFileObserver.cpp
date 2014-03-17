@@ -18,15 +18,10 @@
 #include "NativeFileObserver.h"
 #include <jni.h>
 #include <string>
-#include <fstream>
-#include <string.h>
-#include <unistd.h>
 #include "MyLog.h"
 #include "BackendServer.h"
-#include "SimpleTcpClient.h"
-#include "FileDeleteObserver.h"
-#include "jni/NativeFileObserver_jni.h"
 #include "base/jni_register_helper.h"
+#include "jni/NativeFileObserver_jni.h"
 #include "jce_header/Observer.h"
 #include "ProtocolUtil.h"
 

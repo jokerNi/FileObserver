@@ -1,15 +1,13 @@
 #include "BackendServer.h"
 
 #include <string>
-#include <stdio.h>
-#include <strings.h>
+#include <stdio.h> 
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
-#include <android/log.h>
+#include <arpa/inet.h> 
 #include "MyLog.h"
 #include "SimpleTcpClient.h"
 #include "jce_header/Observer.h"
