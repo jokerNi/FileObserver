@@ -33,7 +33,7 @@
 #include "base/jni_register_helper.h"
 
 using namespace std;
-bool gKeepAliveDaemonProcess = true;
+//bool gKeepAliveDaemonProcess = true;
 
 namespace NativeFileObserver 
 {
@@ -68,6 +68,7 @@ static jint CreateHandler(JNIEnv* env, jobject obj)
     return (jint)(new NativeFileObserver(env, obj));
 }
 
+#if 0
 static void reallyStartWatching(const char* path)
 {
     XLOG("reallyStartWatching path=%s", path);
@@ -108,6 +109,7 @@ bool isDaemonRunning()
 {
     return BackendServer::isServerAlive(kListenPort);
 }
+#endif
 
 NativeFileObserver::NativeFileObserver(JNIEnv *env, jobject obj)
 {
@@ -115,8 +117,10 @@ NativeFileObserver::NativeFileObserver(JNIEnv *env, jobject obj)
 
 void NativeFileObserver::startWatching(JNIEnv* env, jobject obj, jstring jpath)
 {
+
     XLOG("StartWatching begin");
     const char* path = env->GetStringUTFChars(jpath, NULL);
+#if 0
     if (isDaemonRunning())
     {
         XLOG("StartWatching daemon already exist, return");
@@ -139,6 +143,11 @@ void NativeFileObserver::startWatching(JNIEnv* env, jobject obj, jstring jpath)
         XLOG("in origin process, id is %d", getpid());
         env->ReleaseStringUTFChars(jpath, path);
     }
+#endif
+    if (!BackendServer::isServerAlive(kListenPort))
+    {
+        BackendServer::start(kListenPort, path);
+    }
 }
 
 void NativeFileObserver::stopWatching(JNIEnv* env, jobject obj)
@@ -153,11 +162,13 @@ void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstrin
     const char* guid = env->GetStringUTFChars(jguid, NULL);
     const char* version = env->GetStringUTFChars(jversion, NULL);
 
+#if 0
     sUrl = url;
     sGuid = guid;
     sVersion = version;
-    
     XLOG("nativeSetOnDeleteRequestInfo url=%s, guid=%s, version=%s", url, guid, version);
+#endif
+    BackendServer::setData(url, guid, version);
 
     env->ReleaseStringUTFChars(jurl, url);
     env->ReleaseStringUTFChars(jguid, guid);

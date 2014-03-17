@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,12 +14,46 @@
 #include "SimpleTcpClient.h"
 #include "jce_header/Observer.h"
 #include "ProtocolUtil.h"
+#include "FileDeleteObserver.h"
 
 using namespace std;
 using namespace Observer;
 
 const int kSelectTimeout = 6;      // Seconds
 const int kMaxRetryTimes = 5;
+
+bool gKeepAliveDaemonProcess = true;
+static BackendServer* sBackendServer = NULL;
+static int sPort;
+static string sUrl;
+static string sGuid;
+static string sVersion;
+
+typedef void* (*ThreadProc)(void*);
+int createThread(ThreadProc proc)
+{
+    bool success = false;
+
+    pthread_t threadId;
+    pthread_attr_t attributes;
+    pthread_attr_init(&attributes);
+
+    success = !pthread_create(&threadId, &attributes, proc, NULL);
+
+    pthread_attr_destroy(&attributes);
+
+    return success;
+}
+
+void* BackendThread(void* params)
+{
+    XLOG("DaemonEchoThread start");
+
+    sBackendServer = new BackendServer(sPort);
+    sBackendServer->startInternal();
+
+    XLOG("DaemonEchoThread end");
+}
 
 BackendServer::BackendServer(int port)
 {
@@ -69,9 +104,70 @@ bool BackendServer::isServerAlive(int port)
     return false;
 }
 
-void BackendServer::start()
+int BackendServer::start(int port, const char* path)
 {
-    XLOG("BackendServer::start begin");
+    XLOG("StartWatching begin");
+    if (isServerAlive(port))
+    {
+        XLOG("BackendServer::start server is alive, return");
+        return 0;
+    }
+
+    pid_t pid;
+    pid = fork();
+    if (pid < 0)
+    {
+        XLOG("fork failed");
+    }
+    else if (pid == 0)
+    {
+        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
+        XLOG("BackendServer::start path=%s", path);
+        sPort = port;
+        createThread(BackendThread);
+        FileDeleteObserver observer(path);
+        observer.setHttpRequestOnDelete(sUrl, sGuid, sVersion);
+        observer.startWatching();
+
+        while (gKeepAliveDaemonProcess)
+        {
+            //XLOG("StartWatching in while loop");
+
+            usleep(1000 * 1000 * 2);
+            //break;
+            
+            //XLOG("StartWatching leave while loop");
+        }
+
+        if (sBackendServer)
+            sBackendServer->stop();
+
+        XLOG("BackendServer::start exit");
+        usleep(1000 * 1000 * 10);   // Wait a while for other components finish exist
+        exit(0);
+    }
+    else
+    {
+        XLOG("in origin process, id is %d", getpid());
+    }
+    return 0;
+}
+
+void BackendServer::stop()
+{
+    gKeepAliveDaemonProcess = false;
+}
+
+void BackendServer::setData(std::string url, std::string guid, std::string version)
+{
+    sUrl = url;
+    sGuid = guid;
+    sVersion = version;
+}
+
+void BackendServer::startInternal()
+{
+    XLOG("BackendServer::startInternal begin");
     if (listen(mServerSocket, 60) < 0)
     {
         XLOG("listen failed");
@@ -100,13 +196,13 @@ void BackendServer::start()
                 failTimes++;
                 break;
             case 0:
-                XLOG("BackendServer::start timeout, continue");
+                XLOG("BackendServer::startInternal timeout, continue");
                 break;
             default:
                 if (FD_ISSET(mServerSocket, &readFds))
                 {
                     socklen_t client_addr_len = sizeof(client_addr);
-                    XLOG("BackendServer::start server begin accept\n");
+                    XLOG("BackendServer::startInternal server begin accept\n");
                     communicateSocket = accept(mServerSocket, (sockaddr*)&client_addr, &client_addr_len);
                     if (communicateSocket < 0)
                     {
@@ -122,7 +218,7 @@ void BackendServer::start()
                     char buffer[BUFFERSIZE] = {0};
                     int recvMsgSize = 0;
         
-                    XLOG("BackendServer::start server begin recv\n");
+                    XLOG("BackendServer::startInternal server begin recv\n");
                     recvMsgSize = recv(communicateSocket, buffer, BUFFERSIZE, 0);
                     if (recvMsgSize < 0)
                     {
@@ -136,7 +232,7 @@ void BackendServer::start()
                     }
                     else
                     {
-                        XLOG("BackendServer::start server recv msg success: %s\n", buffer);
+                        XLOG("BackendServer::startInternal server recv msg success: %s\n", buffer);
                         if (send(communicateSocket, buffer, recvMsgSize, 0) != recvMsgSize)
                         {
                             XLOG("server send msg failed");
@@ -149,10 +245,10 @@ void BackendServer::start()
     }
     
     close(mServerSocket);
-    XLOG("BackendServer::start end");
+    XLOG("BackendServer::startInternal end");
 }
 
-void BackendServer::stop()
+void BackendServer::stopInternal()
 {
     mLoop = false;
 }

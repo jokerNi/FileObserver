@@ -3,14 +3,18 @@
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <string>
 
 class BackendServer
 {
 public:
     BackendServer(int port);
     static bool isServerAlive(int port);
-    void start();
-	void stop();
+    static int start(int port, const char* path);
+    static void stop();
+    static void setData(std::string url, std::string guid, std::string version);
+	void startInternal();
+	void stopInternal();
 
 private:
     void createSocket();
