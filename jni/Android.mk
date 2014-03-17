@@ -39,7 +39,9 @@ LOCAL_LDLIBS += \
 
 LOCAL_C_INCLUDES += \
     $(NDK_ROOT)/sources/cxx-stl/stlport/stlport \
-    $(THIRD_PARTY_ROOT)/curl-7.34.0/include
+    $(THIRD_PARTY_ROOT)/curl-7.34.0/include \
+    $(LOCAL_PATH)/base \
+    $(LOCAL_PATH)/jni \
 
 include $(BUILD_SHARED_LIBRARY)
 LOCAL_PATH := $(call my-dir)
