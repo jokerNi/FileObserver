@@ -32,13 +32,15 @@
 #include <curl/curl.h>
 
 using namespace std;
+bool gKeepAliveDaemonProcess = true;
 
+namespace NativeFileObserver 
+{
 static void reallyStartWatching(const char* path);
 bool isDaemonRunning();
 void* DaemonEchoThread(void* params);
 int testCurl();
 
-bool gKeepAliveDaemonProcess = true;
 static EchoTcpServer* sEchoServer = NULL;
 static string sUrl;
 static string sGuid;
@@ -60,32 +62,6 @@ int createThread(ThreadProc proc)
     return success;
 }
 static const int kListenPort = 53000;
-
-static void sighandler(int sig_no)
-{
-    XLOG("sighandler: %d", sig_no);
-}
-
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
-{
-    XLOG("JNI_OnLoad begin");
-    signal(SIGKILL, sighandler);
-    base::InitVM(vm);
-
-    JNIEnv* env = NULL;
-    jint result = -1;
-
-    env = base::AttachCurrentThread();
-    if (env == NULL)
-        return result;
-
-    if (!base::JNIRegisterHelper::getInstance().doRegister(env)) 
-        return result;
-
-    XLOG("JNI_OnLoad end");    
-    return JNI_VERSION_1_4;
-}
-
 
 static void StartWatching(JNIEnv* env, jobject obj, jstring jpath)
 {
@@ -210,6 +186,7 @@ int testCurl()
   }
   return 0;
 }
+}
 
-BASE_REGISTER_JNI_FUNC(native_fileobserver, RegisterNativesImpl)
+BASE_REGISTER_JNI_FUNC(NativeFileObserver, NativeFileObserver::RegisterNativesImpl)
 

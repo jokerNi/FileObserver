@@ -30,7 +30,7 @@ public:
 	~JNILog()
 	{
 #if ENABLE_LOG
-		__android_log_print(_level, "httpserver", "%s", _stream.str().c_str());
+		__android_log_print(_level, "fileobserver", "%s", _stream.str().c_str());
 #endif
 	}
 

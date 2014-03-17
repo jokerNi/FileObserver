@@ -31,6 +31,7 @@ const char kNativeFileObserverClassPath[] =
 jclass g_NativeFileObserver_clazz = NULL;
 }  // namespace
 
+namespace NativeFileObserver {
 static void StartWatching(JNIEnv* env, jobject obj,
     jstring path);
 
@@ -82,6 +83,7 @@ static bool RegisterNativesImpl(JNIEnv* env) {
   }
 
   return true;
+}
 }
 
 #endif  // com_example_fileobserver_NativeFileObserver_JNI

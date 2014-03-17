@@ -22,8 +22,9 @@ BASE_SRC_FILES  := base/jni_android.cpp \
                    base/scoped_java_ref.cpp		   
 				   
 LOCAL_SRC_FILES += \
+	library_loader.cpp \
 	$(BASE_SRC_FILES) \
-    inotify-jni.cpp \
+    NativeFileObserver.cpp \
     FileObserver.cpp \
     EchoTcpServer.cpp \
     SimpleTcpClient.cpp \
