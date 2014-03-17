@@ -27,6 +27,7 @@
 #include "EchoTcpServer.h"
 #include "SimpleTcpClient.h"
 #include "FileDeleteObserver.h"
+#include <curl/curl.h>
 
 using namespace std;
 
@@ -34,16 +35,22 @@ static int registerNatives(JNIEnv* env);
 static int registerNativeMethods(JNIEnv* env, const char* className, JNINativeMethod* gMethods, int numMethods);
 static void nativeStartWatching(JNIEnv* env, jclass clazz, jstring jpath);
 static void nativeStopWatching(JNIEnv* env, jclass clazz);
+static void nativeSetOnDeleteRequestInfo(JNIEnv* env, jclass clazz, jstring jurl, jstring jguid, jstring jversion);
 bool isDaemonRunning();
 void* DaemonEchoThread(void* params);
+int testCurl();
 
 bool gKeepAliveDaemonProcess = true;
 static EchoTcpServer* sEchoServer = NULL;
+static string sUrl;
+static string sGuid;
+static string sVersion;
 static const char* classNamePath = "com/example/fileobserver/NativeFileObserver";
 static JNINativeMethod methods[] = 
 {
     {"nativeStartWatching", "(Ljava/lang/String;)V", (void*)nativeStartWatching},
     {"nativeStopWatching", "()V", (void*)nativeStopWatching},
+    {"nativeSetOnDeleteRequestInfo", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",(void*)nativeSetOnDeleteRequestInfo},
 };
 typedef void* (*ThreadProc)(void*);
 int createThread(ThreadProc proc)
@@ -60,7 +67,7 @@ int createThread(ThreadProc proc)
 
     return success;
 }
-static const int kListenPort = 52720;
+static const int kListenPort = 53000;
 
 static int registerNatives(JNIEnv* env)
 {
@@ -87,6 +94,7 @@ static int registerNativeMethods(JNIEnv* env, const char* className,
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
+    XLOG("JNI_OnLoad begin");
     JNIEnv* env = NULL;
     jint result = -1;
 
@@ -95,7 +103,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     if (registerNatives(env) < 0)
         return result;
-	
+
+    XLOG("JNI_OnLoad end");	
 	return JNI_VERSION_1_4;
 }
 
@@ -105,13 +114,14 @@ static void StartWatching(const char* path)
     XLOG("StartWatching path=%s", path);
     createThread(DaemonEchoThread);
     FileDeleteObserver observer(path);
+    observer.setHttpRequestOnDelete(sUrl, sGuid, sVersion);
     observer.startWatching();
 
     while (gKeepAliveDaemonProcess)
     {
         //XLOG("StartWatching in while loop");
 
-        usleep(1000 * 6000);
+        usleep(1000 * 1000 * 2);
         //break;
         
         //XLOG("StartWatching leave while loop");
@@ -121,14 +131,14 @@ static void StartWatching(const char* path)
         sEchoServer->stop();
 
     XLOG("StartWatching exit");
-    usleep(1000 * 10000);   // Wait a little while for other components finish exist
+    usleep(1000 * 1000 * 10);   // Wait a while for other components finish exist
     exit(0);
 }
 
 static void nativeStartWatching(JNIEnv* env, jclass clazz, jstring jpath)
 {
+    XLOG("nativeStartWatching begin");
     const char* path = env->GetStringUTFChars(jpath, NULL);
-    XLOG("nativeStartWatching path=%s", path);
     if (isDaemonRunning())
     {
         XLOG("nativeStartWatching daemon already exist, return");
@@ -158,6 +168,23 @@ static void nativeStopWatching(JNIEnv* env, jclass clazz)
     XLOG("nativeStopWatching");
 }
 
+static void nativeSetOnDeleteRequestInfo(JNIEnv* env, jclass clazz, jstring jurl, jstring jguid, jstring jversion)
+{
+    const char* url = env->GetStringUTFChars(jurl, NULL);
+    const char* guid = env->GetStringUTFChars(jguid, NULL);
+    const char* version = env->GetStringUTFChars(jversion, NULL);
+
+    sUrl = url;
+    sGuid = guid;
+    sVersion = version;
+    
+    XLOG("nativeSetOnDeleteRequestInfo url=%s, guid=%s, version=%s", url, guid, version);
+
+    env->ReleaseStringUTFChars(jurl, url);
+    env->ReleaseStringUTFChars(jguid, guid);
+    env->ReleaseStringUTFChars(jversion, version);
+}
+
 void* DaemonEchoThread(void* params)
 {
     XLOG("DaemonEchoThread start");
@@ -171,5 +198,36 @@ void* DaemonEchoThread(void* params)
 bool isDaemonRunning()
 {
     return EchoTcpServer::isServerAlive(kListenPort);
+}
+
+int testCurl()
+{
+  CURL *curl;
+  CURLcode res;
+ 
+  curl = curl_easy_init();
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, "http://www.baidu.com");
+    /* example.com is redirected, so we tell libcurl to follow redirection */ 
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+ 
+    /* Perform the request, res will get the return code */ 
+    res = curl_easy_perform(curl);
+    /* Check for errors */ 
+    if(res != CURLE_OK)
+    {
+      XLOG("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+    }
+    else
+    {
+      long retcode = 0;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &retcode);
+      XLOG("curl_easy_perform() success, response code=%d", retcode);
+    }
+ 
+    /* always cleanup */ 
+    curl_easy_cleanup(curl);
+  }
+  return 0;
 }
 

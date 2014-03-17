@@ -14,6 +14,7 @@ public class MainActivity extends Activity
 		setContentView(R.layout.activity_main);
 		
 		mFileObserver = new NativeFileObserver(getCacheDir().getAbsolutePath());
+		mFileObserver.setHttpRequestOnDelete("http://www.baidu.com", "guidtest123", "1.0");
 		mFileObserver.startWatching();
 	}
 
