@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <android/log.h>
+#include <stdlib.h>
 #include "MyLog.h"
 #include "EchoTcpServer.h"
 #include "SimpleTcpClient.h"

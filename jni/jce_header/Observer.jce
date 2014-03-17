@@ -1,0 +1,18 @@
+module Observer
+{
+
+enum E_CTRL_TYPE
+{
+    E_CTRL_HELLO	         = 0,        // hello通信测试
+    E_CTRL_HTTP_UPDATE       = 1,        // 更新上报数据
+};
+
+//EMT_CONTROL_MSG
+struct ControlMsg
+{
+    0 optional    E_CTRL_TYPE         eCtrlType;        // E_CTRL_TYPE
+    1 optional    string              sSeq;             // 下发的请求序列号
+    2 optional    vector<byte>        vbData;           // 数据包
+};
+
+};

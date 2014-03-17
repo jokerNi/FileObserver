@@ -39,15 +39,18 @@ THIRD_PARTY_ROOT := ./third_party
 LOCAL_LDLIBS += \
     -llog \
     -lz \
-    -L$(NDK_ROOT)/sources/cxx-stl/stlport/libs/armeabi-v7a -lstlport_static \
     -L$(THIRD_PARTY_ROOT)/curl-7.34.0/lib -lcurl
-
+#-L$(NDK_ROOT)/sources/cxx-stl/stlport/libs/armeabi-v7a -lstlport_static \
 
 LOCAL_C_INCLUDES += \
-    $(NDK_ROOT)/sources/cxx-stl/stlport/stlport \
     $(THIRD_PARTY_ROOT)/curl-7.34.0/include \
     $(LOCAL_PATH)/base \
     $(LOCAL_PATH)/jni \
+	$(LOCAL_PATH)/jce \
+#$(NDK_ROOT)/sources/cxx-stl/stlport/stlport \
 
+LOCAL_CPPFLAGS  := -fexceptions -Wno-deprecated -Wconversion-null -fsigned-char
+LOCAL_CFLAGS    :=  -D_GLIBCXX_PERMIT_BACKWARD_HASH
+	
 include $(BUILD_SHARED_LIBRARY)
 LOCAL_PATH := $(call my-dir)

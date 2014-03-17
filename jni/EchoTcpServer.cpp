@@ -11,8 +11,11 @@
 #include <android/log.h>
 #include "MyLog.h"
 #include "SimpleTcpClient.h"
+#include "jce_header/Observer.h"
+#include "ProtocolUtil.h"
 
 using namespace std;
+using namespace Observer;
 
 const int kSelectTimeout = 6;      // Seconds
 const int kMaxRetryTimes = 5;
@@ -38,18 +41,31 @@ bool EchoTcpServer::isServerAlive(int port)
     if (client.connect("127.0.0.1", port) < 0)
         return false;
 
-    const char* msg = "hello";
-    client.write(msg, strlen(msg));
+    ControlMsg msg;
+    msg.eCtrlType = E_CTRL_HELLO;
+    msg.sSeq = "0";
+    JceOutputStream<BufferWriter> os;
+    msg.writeTo(os);
+    client.write(os.getBuffer(), os.getLength());
     
     const int BUFFER_SIZE = 100;
     char buffer[BUFFER_SIZE] = {0};
     int length = 0;
     length = client.read(buffer, BUFFER_SIZE);
     XLOG("EchoTcpServer::isServerAlive recv %s\n", buffer);
-    
-    if (length > 0 && string(msg) == string(buffer))
+
+    ControlMsg recvMsg;
+    JceInputStream<BufferReader> is;
+    is.setBuffer(buffer, length);
+    recvMsg.readFrom(is);
+
+    XLOG("EchoTcpServer::isServerAlive recv type = %d\n", recvMsg.eCtrlType);
+    if (length > 0 && recvMsg.eCtrlType == E_CTRL_HELLO)
+    {
+        XLOG("EchoTcpServer::isServerAlive return true");
         return true;
-    
+    }
+
     return false;
 }
 
