@@ -26,7 +26,7 @@ LOCAL_SRC_FILES += \
 	$(BASE_SRC_FILES) \
     NativeFileObserver.cpp \
     FileObserver.cpp \
-    EchoTcpServer.cpp \
+    BackendServer.cpp \
     SimpleTcpClient.cpp \
     FileDeleteObserver.cpp \
     event_queue.c \
@@ -40,14 +40,14 @@ LOCAL_LDLIBS += \
     -llog \
     -lz \
     -L$(THIRD_PARTY_ROOT)/curl-7.34.0/lib -lcurl
-#-L$(NDK_ROOT)/sources/cxx-stl/stlport/libs/armeabi-v7a -lstlport_static \
+
 
 LOCAL_C_INCLUDES += \
     $(THIRD_PARTY_ROOT)/curl-7.34.0/include \
     $(LOCAL_PATH)/base \
     $(LOCAL_PATH)/jni \
 	$(LOCAL_PATH)/jce \
-#$(NDK_ROOT)/sources/cxx-stl/stlport/stlport \
+
 
 LOCAL_CPPFLAGS  := -fexceptions -Wno-deprecated -Wconversion-null -fsigned-char
 LOCAL_CFLAGS    :=  -D_GLIBCXX_PERMIT_BACKWARD_HASH

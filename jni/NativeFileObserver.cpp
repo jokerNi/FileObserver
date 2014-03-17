@@ -26,7 +26,7 @@
 #include <android/log.h>
 #include <stdlib.h>
 #include "MyLog.h"
-#include "EchoTcpServer.h"
+#include "BackendServer.h"
 #include "SimpleTcpClient.h"
 #include "FileDeleteObserver.h"
 #include "jni/NativeFileObserver_jni.h"
@@ -41,7 +41,7 @@ static void reallyStartWatching(const char* path);
 bool isDaemonRunning();
 void* DaemonEchoThread(void* params);
 
-static EchoTcpServer* sEchoServer = NULL;
+static BackendServer* sBackendServer = NULL;
 static string sUrl;
 static string sGuid;
 static string sVersion;
@@ -86,8 +86,8 @@ static void reallyStartWatching(const char* path)
         //XLOG("StartWatching leave while loop");
     }
 
-    if (sEchoServer)
-        sEchoServer->stop();
+    if (sBackendServer)
+        sBackendServer->stop();
 
     XLOG("reallyStartWatching exit");
     usleep(1000 * 1000 * 10);   // Wait a while for other components finish exist
@@ -98,15 +98,15 @@ void* DaemonEchoThread(void* params)
 {
     XLOG("DaemonEchoThread start");
 
-    sEchoServer = new EchoTcpServer(kListenPort);
-    sEchoServer->start();
+    sBackendServer = new BackendServer(kListenPort);
+    sBackendServer->start();
 
     XLOG("DaemonEchoThread end");
 }
 
 bool isDaemonRunning()
 {
-    return EchoTcpServer::isServerAlive(kListenPort);
+    return BackendServer::isServerAlive(kListenPort);
 }
 
 NativeFileObserver::NativeFileObserver(JNIEnv *env, jobject obj)
