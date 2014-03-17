@@ -33,83 +33,15 @@
 #include "base/jni_register_helper.h"
 
 using namespace std;
-//bool gKeepAliveDaemonProcess = true;
+
+static const int kListenPort = 53000;
 
 namespace NativeFileObserver 
 {
-static void reallyStartWatching(const char* path);
-bool isDaemonRunning();
-void* DaemonEchoThread(void* params);
-
-static BackendServer* sBackendServer = NULL;
-static string sUrl;
-static string sGuid;
-static string sVersion;
-
-typedef void* (*ThreadProc)(void*);
-int createThread(ThreadProc proc)
-{
-    bool success = false;
-
-    pthread_t threadId;
-    pthread_attr_t attributes;
-    pthread_attr_init(&attributes);
-
-    success = !pthread_create(&threadId, &attributes, proc, NULL);
-
-    pthread_attr_destroy(&attributes);
-
-    return success;
-}
-static const int kListenPort = 53000;
-
 static jint CreateHandler(JNIEnv* env, jobject obj)
 {
     return (jint)(new NativeFileObserver(env, obj));
 }
-
-#if 0
-static void reallyStartWatching(const char* path)
-{
-    XLOG("reallyStartWatching path=%s", path);
-    createThread(DaemonEchoThread);
-    FileDeleteObserver observer(path);
-    observer.setHttpRequestOnDelete(sUrl, sGuid, sVersion);
-    observer.startWatching();
-
-    while (gKeepAliveDaemonProcess)
-    {
-        //XLOG("StartWatching in while loop");
-
-        usleep(1000 * 1000 * 2);
-        //break;
-        
-        //XLOG("StartWatching leave while loop");
-    }
-
-    if (sBackendServer)
-        sBackendServer->stop();
-
-    XLOG("reallyStartWatching exit");
-    usleep(1000 * 1000 * 10);   // Wait a while for other components finish exist
-    exit(0);
-}
-
-void* DaemonEchoThread(void* params)
-{
-    XLOG("DaemonEchoThread start");
-
-    sBackendServer = new BackendServer(kListenPort);
-    sBackendServer->start();
-
-    XLOG("DaemonEchoThread end");
-}
-
-bool isDaemonRunning()
-{
-    return BackendServer::isServerAlive(kListenPort);
-}
-#endif
 
 NativeFileObserver::NativeFileObserver(JNIEnv *env, jobject obj)
 {
@@ -120,30 +52,6 @@ void NativeFileObserver::startWatching(JNIEnv* env, jobject obj, jstring jpath)
 
     XLOG("StartWatching begin");
     const char* path = env->GetStringUTFChars(jpath, NULL);
-#if 0
-    if (isDaemonRunning())
-    {
-        XLOG("StartWatching daemon already exist, return");
-        return;
-    }
-
-    pid_t pid;
-    pid = fork();
-    if (pid < 0)
-    {
-        XLOG("fork failed");
-    }
-    else if (pid == 0)
-    {
-        XLOG("in new process, id is %d, ppid is %d", getpid(), getppid());
-        reallyStartWatching(path);
-    }
-    else
-    {
-        XLOG("in origin process, id is %d", getpid());
-        env->ReleaseStringUTFChars(jpath, path);
-    }
-#endif
     if (!BackendServer::isServerAlive(kListenPort))
     {
         BackendServer::start(kListenPort, path);
@@ -162,12 +70,6 @@ void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstrin
     const char* guid = env->GetStringUTFChars(jguid, NULL);
     const char* version = env->GetStringUTFChars(jversion, NULL);
 
-#if 0
-    sUrl = url;
-    sGuid = guid;
-    sVersion = version;
-    XLOG("nativeSetOnDeleteRequestInfo url=%s, guid=%s, version=%s", url, guid, version);
-#endif
     BackendServer::setData(url, guid, version);
 
     env->ReleaseStringUTFChars(jurl, url);
