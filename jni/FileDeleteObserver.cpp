@@ -13,6 +13,7 @@ FileDeleteObserver::FileDeleteObserver(const std::string& path)
 {
     mPath = path;
     mFileObserver = new FileObserver(path, this);
+    mFileObserver->setEventFilter(FileObserver::Delete | FileObserver::Error);
     mCancelled = false;
 }
 
@@ -39,7 +40,8 @@ void FileDeleteObserver::cancel()
 }
 
 void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& path)
-{    
+{
+    XLOG("FileDeleteObserver::onEvent event=%d", event);
     if (event == FileObserver::Delete)
     {
         if (mCancelled)

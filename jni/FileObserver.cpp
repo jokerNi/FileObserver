@@ -17,7 +17,7 @@ const int kFailedRetryTimes = 10;
 
 struct ThreadParams
 {
-    FileObserver::Delegate* delegate;
+    FileObserver* fileObserver;
     const char* path;
 };
 
@@ -49,7 +49,8 @@ int setNonBlocking(int fd)
 void* ThreadFunc(void* param)
 {
     ThreadParams* thread_params = static_cast<ThreadParams*>(param);
-    FileObserver::Delegate* delegate = thread_params->delegate;
+    FileObserver* fileObserver = thread_params->fileObserver;
+    FileObserver::Delegate* delegate = fileObserver->delegate();
     const char* path = thread_params->path;
     bool loop = true;
     
@@ -204,8 +205,17 @@ void* ThreadFunc(void* param)
                     break;
             }
 
-            if (notifyEvent != FileObserver::None)
+            if (fileObserver->eventFilter())    // Has event filter
+            {
+                if (notifyEvent != FileObserver::None && (notifyEvent & fileObserver->eventFilter()))
+                {
+                    delegate->onEvent(notifyEvent, path);
+                }
+            }
+            else
+            {
                 delegate->onEvent(notifyEvent, path);
+            }
 
             if (notifyEvent == FileObserver::Delete)
             {
@@ -231,6 +241,7 @@ FileObserver::FileObserver(const std::string& path, Delegate* delegate)
     assert (delegate);
     mPath = path;
     mDelegate = delegate;
+    mEventFilter = 0;
 }
 
 bool FileObserver::startWatching()
@@ -242,7 +253,7 @@ bool FileObserver::startWatching()
     pthread_attr_init(&attributes);
 
     ThreadParams* params = new ThreadParams();
-    params->delegate = mDelegate;
+    params->fileObserver = this;
     params->path = mPath.c_str();
     success = !pthread_create(&threadId, &attributes, ThreadFunc, (void*)params);
 
