@@ -51,12 +51,10 @@ static void StopWatching(JNIEnv* env, jobject obj,
 
 static void SetOnDeleteRequestInfo(JNIEnv* env, jobject obj,
     jint handler,
-    jstring url,
-    jstring guid,
-    jstring version)
+    jstring url)
 {
     NativeFileObserver* native = reinterpret_cast<NativeFileObserver*>(handler);
-    return native->setOnDeleteRequestInfo(env, obj, url, guid, version);
+    return native->setOnDeleteRequestInfo(env, obj, url);
 }
 
 // Step 2: method stubs.
@@ -86,8 +84,6 @@ static bool RegisterNativesImpl(JNIEnv* env) {
     { "nativeSetOnDeleteRequestInfo",
 "("
 "I"
-"Ljava/lang/String;"
-"Ljava/lang/String;"
 "Ljava/lang/String;"
 ")"
 "V", reinterpret_cast<void*>(SetOnDeleteRequestInfo) },

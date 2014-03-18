@@ -14,8 +14,7 @@ public:
     NativeFileObserver(JNIEnv* env, jobject obj);
     void startWatching(JNIEnv* env, jobject obj, jstring jpath);
     void stopWatching(JNIEnv* env, jobject obj);
-    void setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstring jurl, 
-            jstring jguid, jstring jversion);
+    void setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstring jurl);
 
 private:
     std::string mUrl;

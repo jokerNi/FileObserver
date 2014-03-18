@@ -9,24 +9,22 @@ public class NativeFileObserver
     private String mPath;
     private int mHandler;
     
+    static {
+    	try
+        {
+            System.loadLibrary("monitor");
+            sLoadSuccess = true;
+        }
+        catch (UnsatisfiedLinkError e)
+        {
+            Log.e(TAG, e.toString());
+            sLoadSuccess = false;
+        }
+    }
+    
     public NativeFileObserver(String path) 
     {
         mPath = path;
-        
-        if (sLoadSuccess == false)
-        {
-            try
-            {
-                System.loadLibrary("monitor");
-                sLoadSuccess = true;
-            }
-            catch (UnsatisfiedLinkError e)
-            {
-                Log.e(TAG, e.toString());
-                sLoadSuccess = false;
-            }
-        }
-        
         if (sLoadSuccess)
         	mHandler = nativeCreateHandler();
     }
@@ -42,13 +40,13 @@ public class NativeFileObserver
         if (sLoadSuccess)
             nativeStopWatching(mHandler);
     }
-	public void setHttpRequestOnDelete(String url, String guid, String version)
+	public void setHttpRequestOnDelete(String url)
 	{
-        nativeSetOnDeleteRequestInfo(mHandler, url, guid, version);
+        nativeSetOnDeleteRequestInfo(mHandler, url);
 	}
 
 	private native int nativeCreateHandler();
 	private native void nativeStartWatching(int handler, String path);
 	private native void nativeStopWatching(int handler);
-	private native void nativeSetOnDeleteRequestInfo(int handler, String url, String guid, String version);
+	private native void nativeSetOnDeleteRequestInfo(int handler, String url);
 }

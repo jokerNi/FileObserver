@@ -66,17 +66,13 @@ void NativeFileObserver::stopWatching(JNIEnv* env, jobject obj)
     XLOG("NativeFileObserver::stopWatching");
 }
 
-void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstring jurl, 
-            jstring jguid, jstring jversion)
+void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstring jurl)
 {
     const char* url = env->GetStringUTFChars(jurl, NULL);
-    const char* guid = env->GetStringUTFChars(jguid, NULL);
-    const char* version = env->GetStringUTFChars(jversion, NULL);
 
     string data;
     ReqOnDel req;
     req.sUrl = url;
-    req.sGuid = guid;
     ProtocolUtil::writeTo(req, data);
     
     ControlMsg msg;
@@ -89,8 +85,6 @@ void NativeFileObserver::setOnDeleteRequestInfo(JNIEnv *env, jobject obj, jstrin
     BackendServer::SendRequest(kListenPort, os.getBuffer(), os.getLength());
     
     env->ReleaseStringUTFChars(jurl, url);
-    env->ReleaseStringUTFChars(jguid, guid);
-    env->ReleaseStringUTFChars(jversion, version);
 }
 
 }

@@ -142,37 +142,33 @@ namespace Observer
         }
         static string MD5()
         {
-            return "325d87d477a8cf7a6468ed6bb39da964";
+            return "2e45701425f70f0e5c722cbe2c3f508e";
         }
         ReqOnDel()
-        :sUrl(""),sGuid("")
+        :sUrl("")
         {
         }
         void resetDefautlt()
         {
             sUrl = "";
-            sGuid = "";
         }
         template<typename WriterT>
         void writeTo(taf::JceOutputStream<WriterT>& _os) const
         {
             _os.write(sUrl, 0);
-            _os.write(sGuid, 1);
         }
         template<typename ReaderT>
         void readFrom(taf::JceInputStream<ReaderT>& _is)
         {
             resetDefautlt();
             _is.read(sUrl, 0, false);
-            _is.read(sGuid, 1, false);
         }
     public:
         std::string sUrl;
-        std::string sGuid;
     };
     inline bool operator==(const ReqOnDel&l, const ReqOnDel&r)
     {
-        return l.sUrl == r.sUrl && l.sGuid == r.sGuid;
+        return l.sUrl == r.sUrl;
     }
     inline bool operator!=(const ReqOnDel&l, const ReqOnDel&r)
     {
@@ -189,7 +185,7 @@ namespace Observer
         jce_copy_struct(a.sFilePath,b.sFilePath);
 
 #define Observer_ReqOnDel_JCE_COPY_STRUCT_HELPER   \
-        jce_copy_struct(a.sUrl,b.sUrl);jce_copy_struct(a.sGuid,b.sGuid);
+        jce_copy_struct(a.sUrl,b.sUrl);
 
 
 

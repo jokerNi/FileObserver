@@ -25,12 +25,10 @@ void FileDeleteObserver::stopWatching()
     mFileObserver->stopWatching();
 }
 
-void FileDeleteObserver::setHttpRequestOnDelete(const std::string& url, const std::string& guid, const std::string& version)
+void FileDeleteObserver::setHttpRequestOnDelete(const std::string& url)
 {
-    XLOG("FileDeleteObserver::setHttpRequestOnDelete url=%s, guid=%s, version=%s", url.c_str(), guid.c_str(), version.c_str());
+    XLOG("FileDeleteObserver::setHttpRequestOnDelete url=%s", url.c_str());
     mUrl = url;
-    mGuid = guid;
-    mVersion = version;
 }
 
 void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& path)
@@ -77,14 +75,9 @@ int FileDeleteObserver::sendRequest()
 
     curl = curl_easy_init();
     if(curl) 
-    {
-        struct curl_slist* headers = NULL; 
-        headers = curl_slist_append(headers, string("GUID: " + mGuid).c_str());
-        headers = curl_slist_append(headers, string("Version: " + mVersion).c_str());
-    
+    {    
         curl_easy_setopt(curl, CURLOPT_URL, mUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
   
         /* Perform the request, res will get the return code */ 
@@ -104,7 +97,6 @@ int FileDeleteObserver::sendRequest()
         }
   
         /* always cleanup */ 
-        curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
     }
     

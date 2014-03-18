@@ -20,7 +20,7 @@ public class MainActivity extends Activity
 			@Override
 			public void run() {
 				mFileObserver.startWatching();
-				mFileObserver.setHttpRequestOnDelete("http://www.baidu.com", "test123", "1.0");
+				mFileObserver.setHttpRequestOnDelete("http://www.bing.com?guid=123&ua=test");
 			}
 		}, 1000);
 	}

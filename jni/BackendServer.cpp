@@ -270,8 +270,8 @@ int BackendServer::handle(int commSock, const char* buf, int length)
                 JceInputStream<BufferReader> is;
                 is.setBuffer(recvMsg.vbData);
                 req.readFrom(is);
-                XLOG("BackendServer::handle guid=%s, url=%s", req.sGuid.c_str(), req.sUrl.c_str());
-                mFileObserver->setHttpRequestOnDelete(req.sUrl, req.sGuid, "1.0");
+                XLOG("BackendServer::handle url=%s", req.sUrl.c_str());
+                mFileObserver->setHttpRequestOnDelete(req.sUrl);
             }
             break;
         default:

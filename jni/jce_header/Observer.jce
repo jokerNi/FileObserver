@@ -24,7 +24,6 @@ struct FilePath
 struct ReqOnDel
 {
 	0 optional    string			  sUrl;				// 发送请求的url
-	1 optional    string			  sGuid;			// GUID信息
 };
 
 };

@@ -9,7 +9,7 @@ public:
     FileDeleteObserver(const std::string& path);
     bool startWatching();
     void stopWatching();
-	void setHttpRequestOnDelete(const std::string& url, const std::string& guid, const std::string& version);
+	void setHttpRequestOnDelete(const std::string& url);
     
 private:
     virtual void onEvent(FileObserver::Event event, const std::string& path);
@@ -18,8 +18,6 @@ private:
     
     std::string mPath;
 	std::string mUrl;
-	std::string mGuid;
-	std::string mVersion;
     FileObserver* mFileObserver;
 };
 
