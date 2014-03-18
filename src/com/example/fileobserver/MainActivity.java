@@ -29,6 +29,5 @@ public class MainActivity extends Activity
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		mFileObserver.stopWatching();
 	}
 }
