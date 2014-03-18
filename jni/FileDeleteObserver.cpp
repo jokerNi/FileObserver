@@ -40,7 +40,7 @@ void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& p
     else if (event == FileObserver::Error)
     {
         XLOG("FileDeleteObserver::onEvent receive error");
-        BackendServer::Stop();
+        finish(false);
     }
 }
 
@@ -60,8 +60,7 @@ void FileDeleteObserver::onDelete(const std::string& path)
             usleep(1000 * 1000 * 3);       // Wait for a while
         }
     }
-    
-    BackendServer::Stop();
+    finish(true);
 }
 
 int FileDeleteObserver::sendRequest()
@@ -101,5 +100,12 @@ int FileDeleteObserver::sendRequest()
     }
     
     return result;
+}
+
+void FileDeleteObserver::finish(bool success)
+{
+    XLOG("FileDeleteObserver::finish success=%d", success);
+    BackendServer::Stop();
+    delete this;
 }
 

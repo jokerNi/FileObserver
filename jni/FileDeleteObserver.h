@@ -13,6 +13,7 @@ public:
     
 private:
     virtual void onEvent(FileObserver::Event event, const std::string& path);
+    void finish(bool success);
 	void onDelete(const std::string& path);
 	int sendRequest();
     
