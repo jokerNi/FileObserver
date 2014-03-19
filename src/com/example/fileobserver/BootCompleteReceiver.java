@@ -5,7 +5,6 @@ import com.example.fileobserver.uninstall.NativeFileObserver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.FileObserver;
 import android.util.Log;
 
 public class BootCompleteReceiver extends BroadcastReceiver

@@ -1,8 +1,6 @@
 package com.example.fileobserver.uninstall;
 
 import android.content.Context;
-import android.os.Handler;
-import android.util.Log;
 
 public class UninstallMonitor
 {
