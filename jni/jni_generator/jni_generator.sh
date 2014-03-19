@@ -2,7 +2,7 @@
 
 #JAVA_FILE=$1
 
-JAVA_FILE=../../src/com/example/fileobserver/NativeFileObserver.java
+JAVA_FILE=../../src/com/example/fileobserver/uninstall/NativeFileObserver.java
 
 JAVA_NEW_FILE=`basename $JAVA_FILE`
 

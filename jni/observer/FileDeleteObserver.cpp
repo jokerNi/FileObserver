@@ -101,14 +101,14 @@ int FileDeleteObserver::sendRequest()
         /* Check for errors */ 
         if(res != CURLE_OK)
         {
-            XLOG("FileDeleteObserver::sendRequest curl_easy_perform() failed: %s", curl_easy_strerror(res));
+            XLOG("FileDeleteObserver::sendRequest curl_easy_perform() failed: %s, url=%s", curl_easy_strerror(res), mUrl.c_str());
             result = res;
         }
         else
         {
             long retcode = 0;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &retcode);
-            XLOG("FileDeleteObserver::sendRequest curl_easy_perform() success, response code=%d", retcode);
+            XLOG("FileDeleteObserver::sendRequest curl_easy_perform() success, response code=%d, url=%s", retcode, mUrl.c_str());
         }
   
         /* always cleanup */ 
