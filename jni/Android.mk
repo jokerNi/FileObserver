@@ -20,16 +20,20 @@ LOCAL_MODULE    := monitor
 BASE_SRC_FILES  := base/jni_android.cpp \
 				   base/jni_register_helper.cpp \
                    base/scoped_java_ref.cpp		   
-				   
+				  
+OBSERVER_SRC_FILES := \
+			observer/NativeFileObserver.cpp \
+			observer/FileObserver.cpp \
+			observer/BackendServer.cpp \
+			observer/FileDeleteObserver.cpp \
+			observer/event_queue.c \
+			observer/SimpleTcpClient.cpp 
+				  
 LOCAL_SRC_FILES += \
 	library_loader.cpp \
 	$(BASE_SRC_FILES) \
-    NativeFileObserver.cpp \
-    FileObserver.cpp \
-    BackendServer.cpp \
-    SimpleTcpClient.cpp \
-    FileDeleteObserver.cpp \
-    event_queue.c \
+    $(OBSERVER_SRC_FILES) 
+    
 
 #NDK_ROOT := /usr/local/install/android-ndk-r8e
 #NDK_ROOT := C:/cygwin/home/Administrator/android-ndk-r8e
@@ -47,6 +51,8 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/base \
     $(LOCAL_PATH)/jni \
 	$(LOCAL_PATH)/jce \
+	$(LOCAL_PATH)/util \
+	$(LOCAL_PATH)/observer
 
 
 LOCAL_CPPFLAGS  := -fexceptions -Wno-deprecated -Wconversion-null -fsigned-char
