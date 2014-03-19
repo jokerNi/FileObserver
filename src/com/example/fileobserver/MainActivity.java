@@ -1,5 +1,8 @@
 package com.example.fileobserver;
 
+import com.example.fileobserver.uninstall.IUninstallReport;
+import com.example.fileobserver.uninstall.UninstallReportService;
+
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;

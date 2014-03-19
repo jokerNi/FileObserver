@@ -1,5 +1,7 @@
 package com.example.fileobserver;
 
+import com.example.fileobserver.uninstall.NativeFileObserver;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;

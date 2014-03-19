@@ -26,7 +26,7 @@ using base::ScopedJavaLocalRef;
 // Step 1: forward declarations.
 namespace {
 const char kNativeFileObserverClassPath[] =
-    "com/example/fileobserver/NativeFileObserver";
+    "com/example/fileobserver/uninstall/NativeFileObserver";
 // Leaking this jclass as we cannot use LazyInstance from some threads.
 jclass g_NativeFileObserver_clazz = NULL;
 }  // namespace
