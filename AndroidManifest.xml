@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.fileobserver"
+    package="com.tencent.qlauncher.fileobserver"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -21,7 +21,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.example.fileobserver.MainActivity"
+            android:name="com.tencent.qlauncher.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,14 +31,14 @@
         </activity>
         
         <receiver
-            android:name="com.example.fileobserver.BootCompleteReceiver">
+            android:name="com.tencent.qlauncher.BootCompleteReceiver">
             <intent-filter android:priority="-999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
         
         <service
-            android:name="com.example.fileobserver.uninstall.UninstallReportService"
+            android:name="com.tencent.qlauncher.uninstall.UninstallReportService"
             android:exported="false"
             android:process=":uninstall" />
     </application>

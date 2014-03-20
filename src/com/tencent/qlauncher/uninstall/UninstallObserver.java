@@ -1,4 +1,4 @@
-package com.example.fileobserver.uninstall;
+package com.tencent.qlauncher.uninstall;
 
 import android.content.ComponentName;
 import android.content.Context;

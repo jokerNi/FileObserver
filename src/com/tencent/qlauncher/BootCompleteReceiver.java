@@ -1,6 +1,6 @@
-package com.example.fileobserver;
+package com.tencent.qlauncher;
 
-import com.example.fileobserver.uninstall.NativeFileObserver;
+import com.tencent.qlauncher.uninstall.NativeFileObserver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

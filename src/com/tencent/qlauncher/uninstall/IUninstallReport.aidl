@@ -1,4 +1,4 @@
-package com.example.fileobserver.uninstall;
+package com.tencent.qlauncher.uninstall;
 
 
 interface IUninstallReport {
