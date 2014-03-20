@@ -10,7 +10,7 @@ import android.util.Log;
 public class UninstallReportService extends Service 
 {
     public static final String TAG = "RemoteService";
-    public enum RequestType { SetReportUrl }
+    public enum RequestType { SetReportUrl, Stop }
     private UninstallMonitor mMonitor;
     
     @Override
@@ -40,6 +40,8 @@ public class UninstallReportService extends Service
                 			result = 0;
                 		}
                 	}
+                case Stop:
+                	stopSelf();
                     break;
                 default:
                     break;

@@ -10,9 +10,7 @@ import android.os.RemoteException;
 
 public class UninstallObserver
 {
-	private static IUninstallReport sUninstallReport;
 	private static String sUrl;
-	private static UninstallServiceConnection mServiceConnection;
 	
 	public static int setHttpRequestOnUninstall(Context context, String url)
 	{
@@ -20,9 +18,6 @@ public class UninstallObserver
 			return -1;
 		
 		sUrl = url;
-		if (mServiceConnection == null) {
-			mServiceConnection = new UninstallServiceConnection();
-		}
 
 		bindAidlService(context);
 		
@@ -32,28 +27,30 @@ public class UninstallObserver
 	private static void bindAidlService(Context context) {
         Intent serviceIntent = new Intent(context, UninstallReportService.class);
         context.startService(serviceIntent);
-        context.bindService(serviceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
-	
-	private static class UninstallServiceConnection implements ServiceConnection
-	{
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service) {
-			sUninstallReport = IUninstallReport.Stub.asInterface(service);
-			if (sUninstallReport != null) {
-				Bundle bundle = new Bundle();
-				bundle.putString("url", sUrl);
-				try {
-					sUninstallReport.sendRequest(UninstallReportService.RequestType.SetReportUrl.ordinal(), bundle);
-				} catch (RemoteException e) {
-					e.printStackTrace();
+        context.bindService(serviceIntent, new ServiceConnection() {
+			@Override
+			public void onServiceDisconnected(ComponentName name) {
+			}
+			
+			@Override
+			public void onServiceConnected(ComponentName name, IBinder service) {
+				
+				IUninstallReport uninstallReport = IUninstallReport.Stub.asInterface(service);
+				if (uninstallReport != null) {
+					if (sUrl == null)
+						return;
+					
+					Bundle bundle = new Bundle();
+					bundle.putString("url", sUrl);
+					try {
+						uninstallReport.sendRequest(UninstallReportService.RequestType.SetReportUrl.ordinal(), bundle);
+						uninstallReport.sendRequest(UninstallReportService.RequestType.Stop.ordinal(), null);
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
 				}
 			}
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name) {
-			sUninstallReport = null;
-		}
-	}
+		}, Context.BIND_AUTO_CREATE);
+    }
+	
 }
