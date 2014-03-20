@@ -9,7 +9,7 @@ import android.util.Log;
 
 public class UninstallReportService extends Service 
 {
-    public static final String TAG = "RemoteService";
+    public static final String TAG = "UninstallReportService";
     public enum RequestType { SetReportUrl, Stop }
     private UninstallMonitor mMonitor;
     

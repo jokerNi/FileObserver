@@ -4,10 +4,23 @@ import android.content.Context;
 
 public class UninstallMonitor
 {
+	private static boolean sLoadSuccess = false;
     private final String TAG = "UninstallMonitor";
     private Context mContext;
     private NativeFileObserver mFileObserver;
     private boolean mStart = false;
+    
+    static {
+    	try
+        {
+            System.loadLibrary("monitor");
+            sLoadSuccess = true;
+        }
+        catch (UnsatisfiedLinkError e)
+        {
+            sLoadSuccess = false;
+        }
+    }
     
     public UninstallMonitor(Context context)
     {
@@ -19,7 +32,9 @@ public class UninstallMonitor
     public void setHttpRequestOnUninstall(String url)
     {
     	if (!mStart) {
-    		start();
+    		if (!start()) {
+    			return;
+    		}
     	}
     	
     	if (url != null) {
@@ -27,12 +42,16 @@ public class UninstallMonitor
     	}
     }
     
-    private void start()
+    private boolean start()
     {
+    	if (!sLoadSuccess)
+    		return false;
+    	
     	if (mStart)
-    		return;
+    		return true;
     	
     	mFileObserver.startWatching();
     	mStart = true;
+    	return true;
     }
 }

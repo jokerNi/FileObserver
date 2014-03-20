@@ -83,7 +83,10 @@ void FileDeleteObserver::onDelete(const std::string& path)
 int FileDeleteObserver::sendRequest()
 {
     if (mUrl.empty())
+	{
+		XLOG("FileDeleteObserver::sendRequest url is empty");
         return -1;
+	}
 
     int result = 0;
     CURL *curl;
