@@ -17,6 +17,11 @@ FileDeleteObserver::FileDeleteObserver(const std::string& path)
     mCancelled = false;
 }
 
+FileDeleteObserver::~FileDeleteObserver()
+{
+	delete mFileObserver;
+}
+
 bool FileDeleteObserver::startWatching()
 {
     return mFileObserver->startWatching();
@@ -24,6 +29,8 @@ bool FileDeleteObserver::startWatching()
 
 void FileDeleteObserver::stopWatching()
 {
+	XLOG("FileDeleteObserver::stopWatching");
+	mCancelled = true;
     mFileObserver->stopWatching();
 }
 
@@ -31,12 +38,6 @@ void FileDeleteObserver::setHttpRequestOnDelete(const std::string& url)
 {
     XLOG("FileDeleteObserver::setHttpRequestOnDelete url=%s", url.c_str());
     mUrl = url;
-}
-
-void FileDeleteObserver::cancel()
-{
-    XLOG("FileDeleteObserver::cancel");
-    mCancelled = true;
 }
 
 void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& path)

@@ -29,14 +29,22 @@ public:
     FileObserver(const std::string& path, Delegate* delegate);
     bool startWatching();
     void stopWatching();
+    bool isStopped() { return mState == Stopped; }
     Delegate* delegate() const { return mDelegate;}
     void setEventFilter(int filter) { mEventFilter = filter; }
     int eventFilter() const { return mEventFilter;}
 
 private:
+    enum State {
+        Created,
+        Started,
+        Stopped,
+    };
+
     std::string mPath;
     Delegate* mDelegate;
     int mEventFilter;
+    State mState;
 };
 
 

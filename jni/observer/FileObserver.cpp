@@ -206,6 +206,9 @@ void* ThreadFunc(void* param)
                     break;
             }
 
+			if (fileObserver->isStopped())
+				break;
+
             if (fileObserver->eventFilter())    // Has event filter
             {
                 if (notifyEvent != FileObserver::None && (notifyEvent & fileObserver->eventFilter()))
@@ -243,6 +246,7 @@ FileObserver::FileObserver(const std::string& path, Delegate* delegate)
     mPath = path;
     mDelegate = delegate;
     mEventFilter = 0;
+	mState = Created;
 }
 
 bool FileObserver::startWatching()
@@ -259,11 +263,15 @@ bool FileObserver::startWatching()
     success = !pthread_create(&threadId, &attributes, ThreadFunc, (void*)params);
 
     pthread_attr_destroy(&attributes);
+
+	if (success)
+		mState = Started;
     
     return success;
 }
 
 void FileObserver::stopWatching()
 {
+	mState = Stopped;
 }
 

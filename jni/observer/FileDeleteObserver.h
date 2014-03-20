@@ -7,10 +7,10 @@ class FileDeleteObserver : public FileObserver::Delegate
 {
 public:
     FileDeleteObserver(const std::string& path);
+    virtual ~FileDeleteObserver();
     bool startWatching();
     void stopWatching();
 	void setHttpRequestOnDelete(const std::string& url);
-	void cancel();
     
 private:
     virtual void onEvent(FileObserver::Event event, const std::string& path);

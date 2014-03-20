@@ -253,7 +253,7 @@ int BackendServer::handle(int commSock, const char* buf, int length)
                 filePath.readFrom(is);
                 XLOG("BackendServer::handle path=%s", filePath.sFilePath.c_str());
                 if (mFileObserver)
-                    mFileObserver->cancel();
+                    mFileObserver->stopWatching();
                 mFileObserver = new FileDeleteObserver(filePath.sFilePath);
                 mFileObserver->startWatching();
             }
