@@ -1,32 +1,45 @@
 package com.tencent.qlauncher.uninstall;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.content.Context;
 
 public class UninstallMonitor
 {
-	private static boolean sLoadSuccess = false;
     private final String TAG = "UninstallMonitor";
     private Context mContext;
     private NativeFileObserver mFileObserver;
+    private boolean mLoadSuccess = false;
     private boolean mStart = false;
     
-    static {
-    	try
-        {
-            System.loadLibrary("monitor");
-            sLoadSuccess = true;
-        }
-        catch (UnsatisfiedLinkError e)
-        {
-            sLoadSuccess = false;
-        }
+    public interface InitCallback {
+    	public void onInitComplete(int result);
     }
     
     public UninstallMonitor(Context context)
     {
         assert (context != null);
         mContext = context;
-        mFileObserver = new NativeFileObserver("/data/data/" + context.getPackageName());
+    }
+    
+    public void init(final InitCallback callback)
+    {
+    	try {
+            System.loadLibrary("monitor");
+            mLoadSuccess = true;
+        } catch (UnsatisfiedLinkError e) {
+            mLoadSuccess = false;
+        }
+    	
+    	new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (callback != null) {
+					callback.onInitComplete(mLoadSuccess ? 0 : -1);
+				}
+			}
+		}, 2000);	// 等待loadLibrary初始化完毕（底层需要做一些事情）
     }
     
     public void setHttpRequestOnUninstall(String url)
@@ -44,8 +57,11 @@ public class UninstallMonitor
     
     private boolean start()
     {
-    	if (!sLoadSuccess)
+    	if (!mLoadSuccess)
     		return false;
+    	
+    	if (mFileObserver == null)
+    		mFileObserver = new NativeFileObserver("/data/data/" + mContext.getPackageName());
     	
     	if (mStart)
     		return true;
