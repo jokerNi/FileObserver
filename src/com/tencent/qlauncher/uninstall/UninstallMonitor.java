@@ -13,10 +13,7 @@ public class UninstallMonitor
     {
         assert (context != null);
         mContext = context;
-        if (!context.getFilesDir().exists()) {
-        	context.getFilesDir().mkdirs();
-        }
-        mFileObserver = new NativeFileObserver(context.getFilesDir().getAbsolutePath());
+        mFileObserver = new NativeFileObserver("/data/data/" + context.getPackageName());
     }
     
     public void setHttpRequestOnUninstall(String url)
