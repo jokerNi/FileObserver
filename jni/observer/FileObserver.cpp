@@ -1,6 +1,7 @@
 #include "FileObserver.h"
 
 #include <string>
+#include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -57,7 +58,7 @@ void* ThreadFunc(void* param)
     int fd = inotify_init();
     if (fd == -1)
     {
-        XLOG("inotify_init failed");
+        XLOG("inotify_init failed: %s", strerror(errno));
         return NULL;
     }
 
@@ -72,7 +73,7 @@ void* ThreadFunc(void* param)
     int wd = inotify_add_watch(fd, watchPath, IN_ALL_EVENTS);
     if (wd == -1)
     {
-        XLOG("inotify_add_watch failed");
+        XLOG("inotify_add_watch failed: %s", strerror(errno));
         return NULL;
     }
 
@@ -88,7 +89,7 @@ void* ThreadFunc(void* param)
         XLOG("after read");
         if (recvSize < 0)
         {
-            XLOG("inotify read error");
+            XLOG("inotify read error: %s", strerror(errno));
             failedTimes++;
             usleep(1000 * 1000);
             continue;
