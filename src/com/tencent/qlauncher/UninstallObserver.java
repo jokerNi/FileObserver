@@ -1,4 +1,4 @@
-package com.tencent.qlauncher.uninstall;
+package com.tencent.qlauncher;
 
 import android.content.ComponentName;
 import android.content.Context;

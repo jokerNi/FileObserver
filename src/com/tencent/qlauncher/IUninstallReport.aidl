@@ -1,4 +1,4 @@
-package com.tencent.qlauncher.uninstall;
+package com.tencent.qlauncher;
 
 
 interface IUninstallReport {

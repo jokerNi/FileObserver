@@ -1,6 +1,9 @@
-package com.tencent.qlauncher.uninstall;
+package com.tencent.qlauncher;
 
-import com.tencent.qlauncher.uninstall.UninstallMonitor.InitCallback;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import com.tencent.qlauncher.uninstall.UninstallMonitor;
 
 import android.app.Service;
 import android.content.Intent;
@@ -18,7 +21,8 @@ public class UninstallReportService extends Service implements Callback
     public static final String TAG = "UninstallReportService";
     public enum RequestType { SetReportUrl, Stop }
     private UninstallMonitor mMonitor;
-    private boolean mInitSuccess;
+    private boolean mInitSuccess = false;;
+    private boolean mLoadSuccess = false;
     private HandlerThread mHandlerThread;
     private Handler mHandler;
     private enum SelfMessage { Msg_SetUninstallUrl, Msg_Stop }
@@ -28,15 +32,8 @@ public class UninstallReportService extends Service implements Callback
     {
     	super.onCreate();
     	
-    	mInitSuccess = false;
+    	loadLibrary();
 		mMonitor = new UninstallMonitor(getApplicationContext());
-    	mMonitor.init(new InitCallback() {
-			@Override
-			public void onInitComplete(int result) {
-				mInitSuccess = (result == 0 ? true : false);
-			}
-		});
-    	
     	mHandlerThread = new HandlerThread("uninstall");
     	mHandlerThread.start();
     	mHandler = new Handler(mHandlerThread.getLooper(), this);
@@ -64,7 +61,7 @@ public class UninstallReportService extends Service implements Callback
                 case Stop:
 		            {
 		            	Message msg = mHandler.obtainMessage(SelfMessage.Msg_Stop.ordinal());
-		            	mHandler.sendMessageDelayed(msg, 2000);
+		            	mHandler.sendMessageDelayed(msg, 5000);
 		            }
                     break;
                 default:
@@ -87,15 +84,34 @@ public class UninstallReportService extends Service implements Callback
 		SelfMessage selfMsg = SelfMessage.values()[msg.what];
 		switch (selfMsg) {
 			case Msg_SetUninstallUrl:
-				String url = (String) msg.obj;
-				if (url != null) {
-        			mMonitor.setHttpRequestOnUninstall(url);
-            	}
+				if (mLoadSuccess) {
+					String url = (String) msg.obj;
+					if (url != null) {
+	        			mMonitor.setHttpRequestOnUninstall(url);
+	            	}
+				}
 				break;
 			case Msg_Stop:
 				stopSelf();
 				break;
 		}
 		return true;
+	}
+	
+	private void loadLibrary()
+	{
+		try {
+            System.loadLibrary("monitor");
+            mLoadSuccess = true;
+        } catch (UnsatisfiedLinkError e) {
+            mLoadSuccess = false;
+        }
+		
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				mInitSuccess = mLoadSuccess;
+			}
+		}, 2000);	// 等待loadLibrary初始化完毕（底层需要做一些事情）
 	}
 }

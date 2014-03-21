@@ -1,7 +1,6 @@
 package com.tencent.qlauncher;
 
 import com.tencent.qlauncher.fileobserver.R;
-import com.tencent.qlauncher.uninstall.UninstallObserver;
 
 import android.os.Bundle;
 import android.app.Activity;

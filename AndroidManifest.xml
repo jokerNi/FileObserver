@@ -38,7 +38,7 @@
         </receiver>
         
         <service
-            android:name="com.tencent.qlauncher.uninstall.UninstallReportService"
+            android:name="com.tencent.qlauncher.UninstallReportService"
             android:exported="false"
             android:process=":uninstall" />
     </application>
