@@ -206,6 +206,8 @@ void* ThreadFunc(void* param)
                     break;
             }
 
+			free(event);
+
 			if (fileObserver->isStopped())
 				break;
 
@@ -227,7 +229,7 @@ void* ThreadFunc(void* param)
                 break;
             }
         }
-        queue_dequeue(q);
+        queue_destroy(q);
         XLOG("Watching loop end");
     }
 
@@ -238,6 +240,7 @@ void* ThreadFunc(void* param)
 
     XLOG("inotify_rm_watch");
     inotify_rm_watch(fd, IN_ALL_EVENTS);
+	close(fd);
 }
 
 FileObserver::FileObserver(const std::string& path, Delegate* delegate)
