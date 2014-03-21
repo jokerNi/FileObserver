@@ -1,7 +1,5 @@
 package com.tencent.qlauncher;
 
-import com.tencent.qlauncher.uninstall.NativeFileObserver;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,8 +16,7 @@ public class BootCompleteReceiver extends BroadcastReceiver
 		{
 			Log.d("BootCompleteReceiver::onReceive", "receive complete");
 			
-			NativeFileObserver observer = new NativeFileObserver(context.getCacheDir().getAbsolutePath());
-			observer.startWatching();
+			UninstallObserver.setHttpRequestOnUninstall(context.getApplicationContext(), "http://www.bing.com?guid=123&ua=testhaha");
 		}
 	}
 }
