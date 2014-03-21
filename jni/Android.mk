@@ -16,7 +16,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := monitor
+LOCAL_MODULE    := uninstallobserver
 BASE_SRC_FILES  := base/jni_android.cpp \
 				   base/jni_register_helper.cpp \
                    base/scoped_java_ref.cpp		   

@@ -101,7 +101,7 @@ public class UninstallReportService extends Service implements Callback
 	private void loadLibrary()
 	{
 		try {
-            System.loadLibrary("monitor");
+            System.loadLibrary("uninstallobserver");
             mLoadSuccess = true;
         } catch (UnsatisfiedLinkError e) {
             mLoadSuccess = false;
