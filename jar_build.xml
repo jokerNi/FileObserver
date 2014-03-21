@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="uninstall_local_jar"  basedir="." default="package">
+
+<!--     <import file="basenet_jar_option.xml" /> -->
+
+    <import file="jar_build_properties.xml" />
+    
+     <target name="cleanAll">
+		<echo>清除旧文件</echo>
+		<delete dir="${temp}"/>
+
+	</target>
+    
+     <target name="init">
+		<echo>开始初始化...</echo>
+		<echo>初始化目录结构... ${basedir}</echo>
+		
+		<mkdir dir="${temp}" />
+		<mkdir dir="${tmp_src}" />
+		<mkdir dir="${tmp_bin}" />
+		<mkdir dir="${tmp_httpserver_dir}" />
+		
+	    <echo>拷贝文件到temp httpserver 目录...</echo>
+	    <copy todir="${tmp_httpserver_dir}" filtering="true">		    
+			<fileset dir="${src_httpserver_dir}"></fileset>
+		</copy> 
+
+		<echo>完成初始化...</echo>
+	</target>
+        
+     <target name="classes_file" >
+        <echo>开始编译class文件...</echo>
+        <javac  encoding="UTF-8" destdir="${tmp_bin}"
+            target="1.6"
+            bootclasspath="${androidjar}"
+            includeantruntime="false">
+            <src path="${tmp_httpserver_dir}" />             
+        </javac>
+        <echo>class文件生成完成...</echo>
+    </target>
+    
+     <target name="generate_jar">
+         <echo>开始生成jar文件...</echo>
+         <jar destfile="${uninstall_jar}" basedir="${tmp_bin}">
+           <manifest>
+              <attribute name="Main-class" value="${tmp_bin}"/>
+           </manifest>
+       </jar>
+         <echo>生成jar文件完成...</echo>
+     </target>
+        
+    <target name="package" >
+        <antcall target="cleanAll" />
+        <antcall target="init" />
+        <antcall target="classes_file" />
+        <antcall target="generate_jar" />
+    </target>    
+
+</project>

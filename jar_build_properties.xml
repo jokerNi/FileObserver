@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="properties" default="">
+
+
+	<property name="android_home" value="D:\Program Files\adt-bundle-windows-x86_64-20131030\sdk" />
+	
+	<property name="src" value="${basedir}/src" />
+	<property name="src_httpserver_dir" value="${src}/com/tencent/qlauncher/uninstall" />
+	
+	<property name="temp" value="${basedir}/temp" />
+	<property name="tmp_src" value="${temp}/src" />
+	<property name="tmp_bin" value="${temp}/bin" />
+    <property name="tmp_httpserver_dir" value="${tmp_src}/com/tencent/qlauncher/httpserver" />
+	<property name="android_version" value="14" />   
+	<property name="androidjar" value="${android_home}/platforms/android-${android_version}/android.jar" />
+	
+	<property name="uninstall_jar" value="${tmp_bin}\uninstall.jar" />   
+	
+</project>
