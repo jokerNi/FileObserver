@@ -42,7 +42,7 @@ void FileDeleteObserver::setHttpRequestOnDelete(const std::string& url)
 
 void FileDeleteObserver::onEvent(FileObserver::Event event, const std::string& path)
 {
-    XLOG("FileDeleteObserver::onEvent event=%d", event);
+    XLOG("FileDeleteObserver::onEvent event=%d, mCancelled=%d", event, mCancelled);
     if (event == FileObserver::Delete)
     {
         if (mCancelled)
