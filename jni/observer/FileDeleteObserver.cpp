@@ -97,9 +97,11 @@ int FileDeleteObserver::sendRequest()
     {    
         curl_easy_setopt(curl, CURLOPT_URL, mUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30);
         //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
   
         /* Perform the request, res will get the return code */ 
+		XLOG("FileDeleteObserver::sendRequest curl_easy_perform");
         res = curl_easy_perform(curl);
         
         /* Check for errors */ 
