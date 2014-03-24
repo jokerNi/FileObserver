@@ -5,7 +5,7 @@
 #include "MyLog.h"
 #include "BackendServer.h"
 
-int kListenPort = 53000;
+int kListenPort = 56700;
 
 static void sighandler( int sig_no )
 {

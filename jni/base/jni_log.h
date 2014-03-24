@@ -4,7 +4,7 @@
 #include <android/log.h>
 #include <sstream>
 
-#define ENABLE_LOG 1
+#define ENABLE_LOG 0
 
 using namespace std;
 
