@@ -1,6 +1,6 @@
 #include <android/log.h>
 
-#define DEBUG_MOD       0
+#define DEBUG_MOD       1
 
 #if DEBUG_MOD
 #define XLOG(FORMAT,...) \
